@@ -41,3 +41,10 @@ backend/storage/framework/sessions/*
 backend/storage/framework/views/*
 backend/storage/framework/testing/*
 backend/bootstrap/cache/*
+
+# Frontend specific
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.env
+frontend/*.local
