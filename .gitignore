@@ -28,3 +28,16 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+
+# Backend specific
+backend/vendor/
+backend/.env
+backend/database/database.sqlite
+backend/storage/*.key
+backend/.phpunit.result.cache
+backend/storage/logs/*.log
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/framework/testing/*
+backend/bootstrap/cache/*
