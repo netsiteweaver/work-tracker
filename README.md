@@ -1,35 +1,28 @@
 # work-tracker
 
-A full-stack work/project tracker application built with Laravel 12 (API mode) and Vue 3 (Vite).
+A full-stack work/project tracker application built with Laravel 12 and Blade templates.
 
 ## Features
 
-- **User Authentication**: Laravel Breeze API + Sanctum for secure email/password login
+- **User Authentication**: Laravel Breeze with session-based authentication
 - **Project Dashboard**: Kanban-style board with 5 columns (New, In Progress, On Hold, Completed, Stopped)
-- **Drag & Drop**: Move projects between boards with automatic status updates
-- **Project Management**: Full CRUD operations for projects in the back office
+- **Drag & Drop**: Move projects between boards with automatic status updates using SortableJS
+- **Project Management**: Full CRUD operations for projects in the admin panel
 - **Responsive Design**: Mobile-friendly UI built with Tailwind CSS
 - **Demo Data**: Pre-seeded with sample projects
 
 ## Tech Stack
 
-### Backend
-- Laravel 12 (API mode)
-- Laravel Sanctum (API authentication)
-- Laravel Breeze (API scaffolding)
-- SQLite database
-
-### Frontend
-- Vue 3
-- Vite
-- Vue Router
-- Tailwind CSS
-- Axios
-- Vue Draggable (SortableJS)
+### Backend & Frontend
+- Laravel 12 (Blade templates)
+- Laravel Breeze (Authentication scaffolding)
+- Tailwind CSS (Styling)
+- SortableJS (Drag & drop functionality)
+- SQLite database (can be changed to MySQL/PostgreSQL)
 
 ## Setup Instructions
 
-### Backend Setup
+### Development Setup
 
 1. Navigate to the backend directory:
    ```bash
@@ -41,7 +34,7 @@ A full-stack work/project tracker application built with Laravel 12 (API mode) a
    cp .env.example .env
    ```
 
-3. Generate application key (if not already done):
+3. Generate application key:
    ```bash
    php artisan key:generate
    ```
@@ -56,41 +49,24 @@ A full-stack work/project tracker application built with Laravel 12 (API mode) a
    php artisan db:seed
    ```
 
-6. Start the development server:
+6. Install frontend dependencies and build assets:
+   ```bash
+   npm install
+   npm run build
+   ```
+
+7. Start the development server:
    ```bash
    php artisan serve
    ```
 
-The API will be available at `http://localhost:8000`
+The application will be available at `http://localhost:8000`
 
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Copy the environment file:
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Update `.env` if your backend URL is different:
-   ```
-   VITE_API_URL=http://localhost:8000/api
-   ```
-
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-The frontend will be available at `http://localhost:5173`
+For development with hot-reloading:
+```bash
+npm run dev  # In one terminal
+php artisan serve  # In another terminal
+```
 
 ## Default Credentials
 
@@ -100,55 +76,69 @@ The seeded database includes a test user:
 
 ## Usage
 
-1. **Dashboard**: Visit the home page to see the project boards. Projects can be viewed without authentication.
-2. **Login**: Click the "Login" button in the top bar to authenticate.
-3. **Admin Panel**: After logging in, click "Admin" to access the project management interface where you can create, edit, and delete projects.
+1. **Dashboard**: Visit the home page (`/`) to see the project boards. Login is required to view and manage projects.
+2. **Login**: Click the "Log in" link in the navigation to authenticate.
+3. **Admin Panel**: After logging in, click "Admin" in the navigation to access the project management interface where you can create, edit, and delete projects.
 4. **Drag & Drop**: On the dashboard, drag projects between boards to change their status automatically.
 
 ## Project Structure
 
 ```
 work-tracker/
-├── backend/          # Laravel API backend
+├── backend/          # Laravel application
 │   ├── app/
-│   │   ├── Http/Controllers/Api/  # API controllers
-│   │   └── Models/                 # Eloquent models
+│   │   ├── Http/Controllers/
+│   │   │   └── ProjectController.php  # Web controller for Blade views
+│   │   └── Models/           # Eloquent models
 │   ├── database/
-│   │   ├── migrations/             # Database migrations
-│   │   └── seeders/                # Database seeders
+│   │   ├── migrations/       # Database migrations
+│   │   └── seeders/         # Database seeders
+│   ├── resources/
+│   │   ├── views/          # Blade templates
+│   │   │   ├── dashboard.blade.php
+│   │   │   ├── admin.blade.php
+│   │   │   ├── projects/   # Project CRUD views
+│   │   │   └── components/ # Reusable components
+│   │   ├── css/            # Tailwind CSS
+│   │   └── js/             # JavaScript assets
 │   └── routes/
-│       ├── api.php                 # API routes
-│       └── auth.php                # Auth routes
-│
-└── frontend/         # Vue 3 frontend
-    ├── src/
-    │   ├── components/             # Vue components
-    │   ├── views/                  # Page views
-    │   ├── composables/            # Vue composables
-    │   ├── services/               # API services
-    │   └── router/                 # Vue Router config
-    └── public/
+│       ├── web.php         # Web routes
+│       └── api.php        # API routes (available for future API needs)
 ```
 
-## API Endpoints
+## Routes
 
-### Authentication
-- `POST /api/register` - Register a new user
-- `POST /api/login` - Login
-- `POST /api/logout` - Logout
-- `GET /api/user` - Get authenticated user
+### Web Routes
+- `GET /` - Dashboard (Kanban board view)
+- `GET /admin` - Admin panel (requires authentication)
+- `GET /projects/create` - Create new project (requires authentication)
+- `POST /projects` - Store new project (requires authentication)
+- `GET /projects/{project}/edit` - Edit project (requires authentication)
+- `PUT /projects/{project}` - Update project (requires authentication)
+- `DELETE /projects/{project}` - Delete project (requires authentication)
+- `POST /projects/update-order` - Update project order/status via drag & drop (requires authentication)
 
-### Projects (Public)
-- `GET /api/projects` - List all projects
-- `GET /api/projects/{id}` - Get single project
+### Authentication Routes (Laravel Breeze)
+- `GET /login` - Login page
+- `POST /login` - Process login
+- `GET /register` - Registration page
+- `POST /register` - Process registration
+- `POST /logout` - Logout
 
-### Projects (Authenticated)
-- `POST /api/projects` - Create project
-- `PUT /api/projects/{id}` - Update project
-- `DELETE /api/projects/{id}` - Delete project
-- `POST /api/projects/update-order` - Update project order and status (for drag & drop)
+## Deployment
+
+See the deployment guides:
+- [Shared Hosting Deployment](deploy-shared-hosting.md)
+- [VPS Deployment](deploy-vps.md)
+
+## Benefits of Blade Templates
+
+- ✅ **Simpler Deployment** - Single codebase, no separate frontend build needed
+- ✅ **No CORS Issues** - Everything served from the same origin
+- ✅ **Better SEO** - Server-rendered HTML
+- ✅ **Works on Any Hosting** - Standard Laravel deployment
+- ✅ **Easier Maintenance** - One deployment process
 
 ## License
 
 This project is open-sourced software.
-
