@@ -96,6 +96,7 @@
                 >
                   <option value="new">New</option>
                   <option value="in_progress">In Progress</option>
+                  <option value="on_hold">On Hold</option>
                   <option value="completed">Completed</option>
                   <option value="stopped">Stopped</option>
                 </select>

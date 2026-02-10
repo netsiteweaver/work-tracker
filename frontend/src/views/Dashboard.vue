@@ -3,7 +3,17 @@
     <FloatingBar @open-login="showLoginModal = true" />
 
     <div class="container mx-auto px-4 py-8">
-      <div v-if="loading" class="text-center py-12">
+      <div v-if="!isAuthenticated" class="text-center py-12">
+        <p class="text-gray-600 text-lg mb-4">Please log in to view your projects.</p>
+        <button
+          @click="showLoginModal = true"
+          class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        >
+          Login
+        </button>
+      </div>
+
+      <div v-else-if="loading" class="text-center py-12">
         <p class="text-gray-600">Loading projects...</p>
       </div>
 
@@ -17,7 +27,7 @@
         </button>
       </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Board
           title="New"
           status="new"
@@ -28,6 +38,12 @@
           title="In Progress"
           status="in_progress"
           :projects="projectsByStatus.in_progress"
+          @update="handleProjectMove"
+        />
+        <Board
+          title="On Hold"
+          status="on_hold"
+          :projects="projectsByStatus.on_hold"
           @update="handleProjectMove"
         />
         <Board
@@ -55,7 +71,9 @@ import FloatingBar from '../components/FloatingBar.vue';
 import Board from '../components/Board.vue';
 import LoginModal from '../components/LoginModal.vue';
 import api from '../services/api';
+import { useAuth } from '../composables/useAuth';
 
+const { isAuthenticated } = useAuth();
 const projects = ref([]);
 const loading = ref(true);
 const error = ref('');
@@ -65,12 +83,17 @@ const projectsByStatus = computed(() => {
   return {
     new: projects.value.filter((p) => p.status === 'new'),
     in_progress: projects.value.filter((p) => p.status === 'in_progress'),
+    on_hold: projects.value.filter((p) => p.status === 'on_hold'),
     completed: projects.value.filter((p) => p.status === 'completed'),
     stopped: projects.value.filter((p) => p.status === 'stopped'),
   };
 });
 
 const fetchProjects = async () => {
+  if (!isAuthenticated.value) {
+    loading.value = false;
+    return;
+  }
   loading.value = true;
   error.value = '';
   try {
@@ -131,6 +154,10 @@ const onLoginSuccess = () => {
 };
 
 onMounted(() => {
-  fetchProjects();
+  if (isAuthenticated.value) {
+    fetchProjects();
+  } else {
+    loading.value = false;
+  }
 });
 </script>

@@ -5,7 +5,7 @@ A full-stack work/project tracker application built with Laravel 12 (API mode) a
 ## Features
 
 - **User Authentication**: Laravel Breeze API + Sanctum for secure email/password login
-- **Project Dashboard**: Kanban-style board with 4 columns (New, In Progress, Completed, Stopped)
+- **Project Dashboard**: Kanban-style board with 5 columns (New, In Progress, On Hold, Completed, Stopped)
 - **Drag & Drop**: Move projects between boards with automatic status updates
 - **Project Management**: Full CRUD operations for projects in the back office
 - **Responsive Design**: Mobile-friendly UI built with Tailwind CSS

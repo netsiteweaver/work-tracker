@@ -29,7 +29,7 @@ class ProjectController extends Controller
             'dev_path' => 'nullable|string|max:255',
             'staging_url' => 'nullable|url|max:255',
             'production_url' => 'nullable|url|max:255',
-            'status' => 'required|in:new,in_progress,completed,stopped',
+            'status' => 'required|in:new,in_progress,on_hold,completed,stopped',
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date|after_or_equal:start_date',
             'sort_order' => 'nullable|integer',

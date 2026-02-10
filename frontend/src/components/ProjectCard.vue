@@ -78,6 +78,7 @@ const statusBorderColor = computed(() => {
   const colors = {
     new: 'border-blue-500',
     in_progress: 'border-yellow-500',
+    on_hold: 'border-orange-500',
     completed: 'border-green-500',
     stopped: 'border-red-500',
   };
@@ -88,6 +89,7 @@ const statusBadgeColor = computed(() => {
   const colors = {
     new: 'bg-blue-100 text-blue-800',
     in_progress: 'bg-yellow-100 text-yellow-800',
+    on_hold: 'bg-orange-100 text-orange-800',
     completed: 'bg-green-100 text-green-800',
     stopped: 'bg-red-100 text-red-800',
   };

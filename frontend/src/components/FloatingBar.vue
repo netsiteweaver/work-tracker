@@ -3,7 +3,11 @@
     <div class="container mx-auto px-4 py-3">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center space-x-2 md:space-x-4">
-          <h1 class="text-xl md:text-2xl font-bold text-gray-800">Work Tracker</h1>
+          <img 
+            src="../assets/work-tracker-logo-with-text-425px-horizontal.png" 
+            alt="Work Tracker" 
+            class="h-8 md:h-10 w-auto"
+          />
         </div>
 
         <div class="flex items-center space-x-2 md:space-x-3 flex-wrap">
@@ -91,32 +95,39 @@
             Tweezzo
           </a>
 
-          <template v-if="isAuthenticated">
-            <router-link
-              :to="adminToggleTarget"
-              class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-            >
-              <ArrowLeftIcon v-if="isAdminRoute" class="w-4 h-4" />
-              <ArrowRightIcon v-else class="w-4 h-4" />
-              {{ adminToggleLabel }}
-            </router-link>
-            <button
-              @click="handleLogout"
-              class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-            >
-              <ArrowRightOnRectangleIcon class="w-4 h-4" />
-              Logout
-            </button>
-          </template>
-          <template v-else>
-            <button
-              @click="emit('openLogin')"
-              class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-            >
-              <UserIcon class="w-4 h-4" />
-              Login
-            </button>
-          </template>
+          <router-link
+            v-if="isAuthenticated"
+            :to="adminToggleTarget"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+          >
+            <ArrowLeftIcon v-if="isAdminRoute" class="w-4 h-4" />
+            <ArrowRightIcon v-else class="w-4 h-4" />
+            {{ adminToggleLabel }}
+          </router-link>
+          <button
+            v-else
+            @click="emit('openLogin')"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+          >
+            <ArrowRightIcon class="w-4 h-4" />
+            Back
+          </button>
+          <button
+            v-if="isAuthenticated"
+            @click="handleLogout"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            <ArrowRightOnRectangleIcon class="w-4 h-4" />
+            Logout
+          </button>
+          <button
+            v-if="!isAuthenticated"
+            @click="emit('openLogin')"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+          >
+            <UserIcon class="w-4 h-4" />
+            Login
+          </button>
         </div>
       </div>
     </div>
