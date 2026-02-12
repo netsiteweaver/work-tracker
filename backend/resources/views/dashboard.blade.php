@@ -15,7 +15,7 @@
             }
         }
     @endphp
-    <div class="py-12 dashboard-background-container {{ ($darkMode ?? false) && $hasImageBackground ? 'dark-mode-bg-overlay' : '' }}" @if($bgStyle) style="{{ $bgStyle }} min-height: 100vh;" @endif>
+    <div class="py-12 dashboard-background-container {{ ($darkMode ?? false) && $hasImageBackground ? 'dark-mode-bg-overlay' : '' }}" @if($bgStyle) style="{{ $bgStyle }} min-height: 100vh;" @endif data-has-image-bg="{{ $hasImageBackground ? 'true' : 'false' }}">
         <div class="w-full px-4 sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">

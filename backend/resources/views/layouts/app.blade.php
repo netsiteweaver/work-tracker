@@ -68,6 +68,17 @@
                     document.body.classList.remove('dark');
                     document.documentElement.classList.remove('dark');
                 }
+                
+                // Initialize dark gradient overlay on dashboard (if it exists)
+                const dashboardContainer = document.querySelector('.dashboard-background-container');
+                if (dashboardContainer) {
+                    const hasImageBg = dashboardContainer.getAttribute('data-has-image-bg') === 'true';
+                    if (hasImageBg && darkMode) {
+                        dashboardContainer.classList.add('dark-mode-bg-overlay');
+                    } else {
+                        dashboardContainer.classList.remove('dark-mode-bg-overlay');
+                    }
+                }
             });
 
             async function toggleDarkMode() {
@@ -82,6 +93,19 @@
                 } else {
                     body.classList.add('dark');
                     html.classList.add('dark');
+                }
+                
+                // Toggle dark gradient overlay on dashboard background (if it exists)
+                const dashboardContainer = document.querySelector('.dashboard-background-container');
+                if (dashboardContainer) {
+                    const hasImageBg = dashboardContainer.getAttribute('data-has-image-bg') === 'true';
+                    if (hasImageBg) {
+                        if (isDark) {
+                            dashboardContainer.classList.remove('dark-mode-bg-overlay');
+                        } else {
+                            dashboardContainer.classList.add('dark-mode-bg-overlay');
+                        }
+                    }
                 }
 
                 // Save preference to server
@@ -107,6 +131,18 @@
                             body.classList.remove('dark');
                             html.classList.remove('dark');
                         }
+                        // Revert gradient overlay
+                        const dashboardContainer = document.querySelector('.dashboard-background-container');
+                        if (dashboardContainer) {
+                            const hasImageBg = dashboardContainer.getAttribute('data-has-image-bg') === 'true';
+                            if (hasImageBg) {
+                                if (isDark) {
+                                    dashboardContainer.classList.add('dark-mode-bg-overlay');
+                                } else {
+                                    dashboardContainer.classList.remove('dark-mode-bg-overlay');
+                                }
+                            }
+                        }
                         console.error('Failed to save dark mode preference');
                     }
                 } catch (error) {
@@ -117,6 +153,18 @@
                     } else {
                         body.classList.remove('dark');
                         html.classList.remove('dark');
+                    }
+                    // Revert gradient overlay
+                    const dashboardContainer = document.querySelector('.dashboard-background-container');
+                    if (dashboardContainer) {
+                        const hasImageBg = dashboardContainer.getAttribute('data-has-image-bg') === 'true';
+                        if (hasImageBg) {
+                            if (isDark) {
+                                dashboardContainer.classList.add('dark-mode-bg-overlay');
+                            } else {
+                                dashboardContainer.classList.remove('dark-mode-bg-overlay');
+                            }
+                        }
                     }
                     console.error('Error saving dark mode preference:', error);
                 }
