@@ -28,6 +28,14 @@
                             @enderror
                         </div>
 
+                        <div>
+                            <x-input-label for="maintenance" :value="__('Maintenance')" />
+                            <textarea id="maintenance" name="maintenance" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('maintenance') }}</textarea>
+                            @error('maintenance')
+                                <x-input-error class="mt-2" :messages="[$message]" />
+                            @enderror
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <x-input-label for="dev_path" :value="__('Dev Path')" />
@@ -43,6 +51,7 @@
                                     <option value="new" {{ old('status') == 'new' ? 'selected' : '' }}>New</option>
                                     <option value="in_progress" {{ old('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                                     <option value="on_hold" {{ old('status') == 'on_hold' ? 'selected' : '' }}>On Hold</option>
+                                    <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
                                     <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                                     <option value="stopped" {{ old('status') == 'stopped' ? 'selected' : '' }}>Stopped</option>
                                 </select>

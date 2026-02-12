@@ -20,6 +20,7 @@ class ProjectController extends Controller
             'new' => $projects->where('status', 'new')->values(),
             'in_progress' => $projects->where('status', 'in_progress')->values(),
             'on_hold' => $projects->where('status', 'on_hold')->values(),
+            'maintenance' => $projects->where('status', 'maintenance')->values(),
             'completed' => $projects->where('status', 'completed')->values(),
             'stopped' => $projects->where('status', 'stopped')->values(),
         ];
@@ -52,10 +53,11 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'maintenance' => 'nullable|string',
             'dev_path' => 'nullable|string|max:255',
             'staging_url' => 'nullable|url|max:255',
             'production_url' => 'nullable|url|max:255',
-            'status' => 'required|in:new,in_progress,on_hold,completed,stopped',
+            'status' => 'required|in:new,in_progress,on_hold,maintenance,completed,stopped',
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date|after_or_equal:start_date',
         ]);
@@ -85,6 +87,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'maintenance' => 'nullable|string',
             'dev_path' => 'nullable|string|max:255',
             'staging_url' => 'nullable|url|max:255',
             'production_url' => 'nullable|url|max:255',
@@ -116,7 +119,7 @@ class ProjectController extends Controller
             'projects' => 'required|array',
             'projects.*.id' => 'required|exists:projects,id',
             'projects.*.sort_order' => 'required|integer',
-            'projects.*.status' => 'sometimes|in:new,in_progress,on_hold,completed,stopped',
+            'projects.*.status' => 'sometimes|in:new,in_progress,on_hold,maintenance,completed,stopped',
         ]);
 
         if ($validator->fails()) {
