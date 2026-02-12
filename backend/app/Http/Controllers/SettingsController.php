@@ -101,7 +101,9 @@ class SettingsController extends Controller
         Setting::set('initial_collapse', $initialCollapse, $userId);
         
         // Handle background image upload
-        $backgroundValue = $validated['dashboard_background'] ?? '';
+        // Get existing background to preserve it if no new value is provided
+        $existingBackground = Setting::get('dashboard_background', '', $userId);
+        $backgroundValue = $existingBackground; // Default to existing value
         
         if ($request->hasFile('background_image')) {
             try {
@@ -115,9 +117,8 @@ class SettingsController extends Controller
                 }
                 
                 // Delete old background image if it exists
-                $oldBackground = Setting::get('dashboard_background', '', $userId);
-                if ($oldBackground && strpos($oldBackground, 'storage/') !== false) {
-                    $oldPath = str_replace('storage/', '', $oldBackground);
+                if ($existingBackground && strpos($existingBackground, 'storage/') !== false) {
+                    $oldPath = str_replace('storage/', '', $existingBackground);
                     if (Storage::disk('public')->exists($oldPath)) {
                         Storage::disk('public')->delete($oldPath);
                     }
@@ -144,10 +145,11 @@ class SettingsController extends Controller
                     ->withErrors(['background_image' => 'Error uploading image: ' . $e->getMessage()])
                     ->withInput();
             }
-        } elseif (!empty($validated['dashboard_background'])) {
-            // If no file uploaded but text input has value, use that
-            $backgroundValue = $validated['dashboard_background'];
+        } elseif (isset($validated['dashboard_background']) && !empty(trim($validated['dashboard_background']))) {
+            // If text input has a non-empty value, use that value
+            $backgroundValue = trim($validated['dashboard_background']);
         }
+        // If text field is empty and no file uploaded, $backgroundValue remains as $existingBackground (preserved)
         
         Setting::set('dashboard_background', $backgroundValue, $userId);
         
