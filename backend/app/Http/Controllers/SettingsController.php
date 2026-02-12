@@ -74,9 +74,13 @@ class SettingsController extends Controller
             'column_visibility.*' => 'boolean',
             'initial_collapse' => 'nullable|array',
             'initial_collapse.*' => 'boolean',
-            'background_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
+            'background_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200', // 50MB max (matches vhost PHP configuration)
             'dashboard_background' => 'nullable|string|max:255',
             'dark_mode' => 'nullable|boolean',
+        ], [
+            'background_image.image' => 'The file must be an image.',
+            'background_image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif, webp.',
+            'background_image.max' => 'The image may not be greater than 50MB.',
         ]);
 
         // Define all possible statuses
@@ -100,18 +104,46 @@ class SettingsController extends Controller
         $backgroundValue = $validated['dashboard_background'] ?? '';
         
         if ($request->hasFile('background_image')) {
-            // Delete old background image if it exists
-            $oldBackground = Setting::get('dashboard_background', '', $userId);
-            if ($oldBackground && strpos($oldBackground, 'storage/') !== false) {
-                $oldPath = str_replace('storage/', '', $oldBackground);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+            try {
+                $file = $request->file('background_image');
+                
+                // Validate file
+                if (!$file->isValid()) {
+                    return redirect()->route('admin.settings')
+                        ->withErrors(['background_image' => 'The uploaded file is not valid.'])
+                        ->withInput();
                 }
+                
+                // Delete old background image if it exists
+                $oldBackground = Setting::get('dashboard_background', '', $userId);
+                if ($oldBackground && strpos($oldBackground, 'storage/') !== false) {
+                    $oldPath = str_replace('storage/', '', $oldBackground);
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                }
+                
+                // Ensure the backgrounds directory exists
+                if (!Storage::disk('public')->exists('backgrounds')) {
+                    Storage::disk('public')->makeDirectory('backgrounds');
+                }
+                
+                // Store new image
+                $path = $file->store('backgrounds', 'public');
+                
+                if (!$path) {
+                    return redirect()->route('admin.settings')
+                        ->withErrors(['background_image' => 'Failed to upload the image. Please check file permissions.'])
+                        ->withInput();
+                }
+                
+                $backgroundValue = 'storage/' . $path;
+            } catch (\Exception $e) {
+                \Log::error('Background image upload error: ' . $e->getMessage());
+                return redirect()->route('admin.settings')
+                    ->withErrors(['background_image' => 'Error uploading image: ' . $e->getMessage()])
+                    ->withInput();
             }
-            
-            // Store new image
-            $path = $request->file('background_image')->store('backgrounds', 'public');
-            $backgroundValue = 'storage/' . $path;
         } elseif (!empty($validated['dashboard_background'])) {
             // If no file uploaded but text input has value, use that
             $backgroundValue = $validated['dashboard_background'];

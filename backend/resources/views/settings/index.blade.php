@@ -140,13 +140,16 @@
                                     id="background_image" 
                                     name="background_image" 
                                     type="file" 
-                                    accept="image/*"
-                                    class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                    class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900 file:text-indigo-700 dark:file:text-indigo-300 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800"
                                 />
-                                <p class="mt-2 text-xs text-gray-500">Upload an image file (JPG, PNG, GIF, etc.)</p>
+                                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Upload an image file (JPG, PNG, GIF, WebP - Max 50MB)</p>
                                 @error('background_image')
                                     <x-input-error class="mt-2" :messages="[$message]" />
                                 @enderror
+                                @if(session('error'))
+                                    <x-input-error class="mt-2" :messages="[session('error')]" />
+                                @endif
                             </div>
 
                             <!-- Or Enter URL/Color -->
