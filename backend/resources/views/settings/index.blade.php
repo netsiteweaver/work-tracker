@@ -142,8 +142,34 @@
                                     type="file" 
                                     accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
                                     class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900 file:text-indigo-700 dark:file:text-indigo-300 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800"
+                                    onchange="previewImage(this)"
                                 />
                                 <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Upload an image file (JPG, PNG, GIF, WebP - Max 50MB)</p>
+                                
+                                <!-- Image Preview -->
+                                <div id="image-preview-container" class="mt-4 hidden">
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
+                                    <div class="relative inline-block">
+                                        <img 
+                                            id="image-preview" 
+                                            src="" 
+                                            alt="Image preview" 
+                                            class="max-w-md max-h-64 rounded border border-gray-300 dark:border-gray-600 shadow-sm"
+                                        />
+                                        <button 
+                                            type="button"
+                                            onclick="clearImagePreview()"
+                                            class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                            title="Remove preview"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <p id="image-info" class="mt-2 text-xs text-gray-500 dark:text-gray-400"></p>
+                                </div>
+                                
                                 @error('background_image')
                                     <x-input-error class="mt-2" :messages="[$message]" />
                                 @enderror
@@ -184,5 +210,56 @@
             </form>
         </div>
     </div>
+    
+    @push('scripts')
+    <script>
+        function previewImage(input) {
+            const container = document.getElementById('image-preview-container');
+            const preview = document.getElementById('image-preview');
+            const info = document.getElementById('image-info');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                
+                // Check file size (50MB = 50 * 1024 * 1024 bytes)
+                const maxSize = 50 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert('File size exceeds 50MB limit. Please choose a smaller file.');
+                    input.value = '';
+                    clearImagePreview();
+                    return;
+                }
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    container.classList.remove('hidden');
+                    
+                    // Display file info
+                    const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+                    info.textContent = `File: ${file.name} (${fileSize} MB)`;
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                clearImagePreview();
+            }
+        }
+        
+        function clearImagePreview() {
+            const container = document.getElementById('image-preview-container');
+            const preview = document.getElementById('image-preview');
+            const info = document.getElementById('image-info');
+            const input = document.getElementById('background_image');
+            
+            container.classList.add('hidden');
+            preview.src = '';
+            info.textContent = '';
+            if (input) {
+                input.value = '';
+            }
+        }
+    </script>
+    @endpush
 </x-app-layout>
 
