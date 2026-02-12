@@ -217,9 +217,8 @@
                 </button>
                 @endauth
 
-                <!-- Back/Front Toggle (only for users who can edit - viewers don't need it) -->
+                <!-- Back/Front Toggle (for all authenticated users) -->
                 @auth
-                    @if(auth()->user()->canEdit())
                     <a
                         href="{{ request()->routeIs('admin') || request()->routeIs('admin.*') ? route('dashboard') : route('admin') }}"
                         class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
@@ -236,7 +235,6 @@
                             Back
                         @endif
                     </a>
-                    @endif
                 @else
                     <a
                         href="{{ route('dashboard') }}"
