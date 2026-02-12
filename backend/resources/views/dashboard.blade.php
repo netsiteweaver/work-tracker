@@ -1,17 +1,21 @@
 <x-app-layout>
     @php
         $bgStyle = '';
+        $hasImageBackground = false;
         if (!empty($dashboardBackground ?? '')) {
             if (strpos($dashboardBackground, 'storage/') !== false) {
                 $bgStyle = "background: url('" . asset($dashboardBackground) . "'); background-size: cover; background-position: center; background-repeat: no-repeat;";
+                $hasImageBackground = true;
             } elseif (strpos($dashboardBackground, 'http') !== false || strpos($dashboardBackground, 'url(') !== false) {
                 $bgStyle = "background: " . (strpos($dashboardBackground, 'url(') === false ? "url('" . $dashboardBackground . "')" : $dashboardBackground) . "; background-size: cover; background-position: center; background-repeat: no-repeat;";
+                $hasImageBackground = true;
             } else {
                 $bgStyle = "background: " . $dashboardBackground . ";";
+                $hasImageBackground = false; // Solid color, not an image
             }
         }
     @endphp
-    <div class="py-12" @if($bgStyle) style="{{ $bgStyle }} min-height: 100vh;" @endif>
+    <div class="py-12 dashboard-background-container {{ ($darkMode ?? false) && $hasImageBackground ? 'dark-mode-bg-overlay' : '' }}" @if($bgStyle) style="{{ $bgStyle }} min-height: 100vh;" @endif>
         <div class="w-full px-4 sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
@@ -94,6 +98,33 @@
 
     @push('styles')
     <style>
+        /* Dark mode gradient overlay for background images */
+        .dashboard-background-container.dark-mode-bg-overlay {
+            position: relative;
+        }
+        
+        .dashboard-background-container.dark-mode-bg-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0.6) 0%,
+                rgba(0, 0, 0, 0.7) 50%,
+                rgba(0, 0, 0, 0.8) 100%
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .dashboard-background-container.dark-mode-bg-overlay > * {
+            position: relative;
+            z-index: 1;
+        }
+        
         .bg-pattern-new {
             background-color: #eff6ff;
             background-image:
