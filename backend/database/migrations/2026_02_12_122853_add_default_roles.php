@@ -35,6 +35,7 @@ return new class extends Migration
                     'view_projects',
                     'edit_projects',
                     'create_projects',
+                    'manage_settings',
                 ]),
                 'created_at' => now(),
                 'updated_at' => now(),
