@@ -169,6 +169,32 @@
             // Load saved column order
             loadColumnOrder();
 
+            // Border color mapping
+            const statusBorderClasses = {
+                'new': 'border-blue-500',
+                'in_progress': 'border-yellow-500',
+                'on_hold': 'border-orange-500',
+                'maintenance': 'border-purple-500',
+                'completed': 'border-green-500',
+                'stopped': 'border-red-500'
+            };
+
+            // Function to update project card border color
+            function updateProjectCardColor(card, newStatus) {
+                // Remove all status border classes
+                Object.values(statusBorderClasses).forEach(borderClass => {
+                    card.classList.remove(borderClass);
+                });
+                
+                // Add the new border class
+                if (statusBorderClasses[newStatus]) {
+                    card.classList.add(statusBorderClasses[newStatus]);
+                }
+                
+                // Update data-status attribute
+                card.setAttribute('data-status', newStatus);
+            }
+
             // Make project cards draggable
             boards.forEach(board => {
                 new Sortable(board, {
@@ -176,9 +202,15 @@
                     animation: 200,
                     ghostClass: 'ghost-card',
                     onEnd: function(evt) {
-                        const projectId = evt.item.dataset.projectId;
+                        const projectCard = evt.item;
+                        const projectId = projectCard.dataset.projectId;
                         const newStatus = evt.to.closest('.board-column').dataset.status;
                         const oldStatus = evt.from.closest('.board-column').dataset.status;
+
+                        // Update border color immediately when moved to new column
+                        if (newStatus !== oldStatus) {
+                            updateProjectCardColor(projectCard, newStatus);
+                        }
 
                         if (newStatus !== oldStatus || evt.oldIndex !== evt.newIndex) {
                             updateProjectOrder();

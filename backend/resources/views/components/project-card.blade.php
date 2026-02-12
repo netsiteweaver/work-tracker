@@ -12,7 +12,7 @@
     $borderClass = $borderClasses[$project->status] ?? 'border-gray-500';
 @endphp
 
-<div class="bg-white rounded-lg shadow-md p-4 mb-3 cursor-move hover:shadow-lg transition-shadow border-l-4 {{ $borderClass }} project-card" data-project-id="{{ $project->id }}">
+<div class="bg-white rounded-lg shadow-md p-4 mb-3 cursor-move hover:shadow-lg transition-shadow border-l-4 {{ $borderClass }} project-card" data-project-id="{{ $project->id }}" data-status="{{ $project->status }}">
     <div class="flex justify-between items-start mb-2 cursor-pointer project-header" onclick="toggleProject(this)">
         <h3 class="text-lg font-semibold text-gray-800">{{ $project->name }}</h3>
         <svg class="w-4 h-4 text-gray-500 transition-transform project-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
