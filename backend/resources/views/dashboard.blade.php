@@ -307,6 +307,9 @@
                 const card = header.closest('.project-card');
                 card.classList.toggle('collapsed');
                 
+                // Mark that user has manually changed collapse state
+                localStorage.setItem('hasManualCollapseState', 'true');
+                
                 // Save collapsed state to localStorage
                 const projectId = card.dataset.projectId;
                 const isCollapsed = card.classList.contains('collapsed');
@@ -342,6 +345,10 @@
             // Toggle all projects in a column
             window.toggleColumnProjects = function(status, event) {
                 event.stopPropagation(); // Prevent triggering column drag
+                
+                // Mark that user has manually changed collapse state
+                localStorage.setItem('hasManualCollapseState', 'true');
+                
                 const column = document.querySelector(`[data-status="${status}"]`);
                 const board = column.querySelector(`#board-${status}`);
                 const projects = board.querySelectorAll('.project-card');
@@ -383,7 +390,7 @@
                 }
             };
 
-            // Restore collapsed state
+            // Restore collapsed state from localStorage
             const collapsedProjects = JSON.parse(localStorage.getItem('collapsedProjects') || '[]');
             collapsedProjects.forEach(projectId => {
                 const card = document.querySelector(`[data-project-id="${projectId}"]`);
@@ -391,6 +398,47 @@
                     card.classList.add('collapsed');
                 }
             });
+
+            // Apply initial collapse state from settings
+            // We apply it if:
+            // 1. No localStorage data exists (first time), OR
+            // 2. User hasn't manually changed collapse state yet
+            const hasManualCollapseState = localStorage.getItem('hasManualCollapseState') === 'true';
+            const shouldApplyInitialCollapse = !hasManualCollapseState || collapsedProjects.length === 0;
+            
+            if (shouldApplyInitialCollapse) {
+                // Apply initial collapse state from settings
+                document.querySelectorAll('.board-column').forEach(column => {
+                    const initialCollapse = column.getAttribute('data-initial-collapse');
+                    const status = column.dataset.status;
+                    const board = column.querySelector(`#board-${status}`);
+                    
+                    if (board && initialCollapse === 'true') {
+                        const projects = board.querySelectorAll('.project-card');
+                        projects.forEach(card => {
+                            const projectId = card.dataset.projectId;
+                            // Collapse all projects in this column if initial collapse is enabled
+                            if (!collapsedProjects.includes(projectId)) {
+                                card.classList.add('collapsed');
+                                collapsedProjects.push(projectId);
+                            }
+                        });
+                    } else if (board && initialCollapse === 'false') {
+                        // If initial collapse is false, ensure projects are expanded
+                        const projects = board.querySelectorAll('.project-card');
+                        projects.forEach(card => {
+                            const projectId = card.dataset.projectId;
+                            const index = collapsedProjects.indexOf(projectId);
+                            if (index > -1) {
+                                card.classList.remove('collapsed');
+                                collapsedProjects.splice(index, 1);
+                            }
+                        });
+                    }
+                });
+                // Save updated collapsed projects
+                localStorage.setItem('collapsedProjects', JSON.stringify(collapsedProjects));
+            }
 
             // Update column toggle icons based on current state
             document.querySelectorAll('.board-column').forEach(column => {
