@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Project Management') }}
             </h2>
-            <a href="{{ route('projects.create') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            <a href="{{ route('admin.projects.create') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                 + New Project
             </a>
         </div>
@@ -29,7 +29,7 @@
                     @else
                         <div class="text-center py-12">
                             <p class="text-gray-600 text-lg mb-4">No projects yet. Create your first project!</p>
-                            <a href="{{ route('projects.create') }}" class="inline-block px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                            <a href="{{ route('admin.projects.create') }}" class="inline-block px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                                 Create Project
                             </a>
                         </div>

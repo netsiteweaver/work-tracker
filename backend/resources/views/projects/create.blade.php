@@ -9,7 +9,7 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-                    <form action="{{ route('projects.store') }}" method="POST" class="space-y-4">
+                    <form action="{{ route('admin.projects.store') }}" method="POST" class="space-y-4">
                         @csrf
 
                         <div>
@@ -96,7 +96,7 @@
                         </div>
 
                         <div class="flex items-center justify-end space-x-3">
-                            <a href="{{ route('admin') }}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            <a href="{{ route('admin.projects') }}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
                                 Cancel
                             </a>
                             <x-primary-button>

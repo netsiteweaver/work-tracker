@@ -80,10 +80,10 @@
 
     @if($showActions)
         <div class="mt-3 flex justify-end space-x-2">
-            <a href="{{ route('projects.edit', $project) }}" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+            <a href="{{ route('admin.projects.edit', $project) }}" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
                 Edit
             </a>
-            <form action="{{ route('projects.destroy', $project) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this project?')">
+            <form action="{{ route('admin.projects.destroy', $project) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this project?')">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">

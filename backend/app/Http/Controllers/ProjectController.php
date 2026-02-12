@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,6 +16,28 @@ class ProjectController extends Controller
     {
         $projects = Project::orderBy('sort_order')->orderBy('created_at', 'desc')->get();
         
+        // Get user settings
+        $userId = auth()->id();
+        $columnVisibility = Setting::get('column_visibility', [
+            'new' => true,
+            'in_progress' => true,
+            'on_hold' => true,
+            'maintenance' => true,
+            'completed' => true,
+            'stopped' => true,
+        ], $userId);
+        
+        $initialCollapse = Setting::get('initial_collapse', [
+            'new' => false,
+            'in_progress' => false,
+            'on_hold' => false,
+            'maintenance' => false,
+            'completed' => false,
+            'stopped' => false,
+        ], $userId);
+        
+        $dashboardBackground = Setting::get('dashboard_background', '', $userId);
+        
         // Group by status for dashboard
         $projectsByStatus = [
             'new' => $projects->where('status', 'new')->values(),
@@ -25,7 +48,7 @@ class ProjectController extends Controller
             'stopped' => $projects->where('status', 'stopped')->values(),
         ];
         
-        return view('dashboard', compact('projectsByStatus'));
+        return view('dashboard', compact('projectsByStatus', 'columnVisibility', 'initialCollapse', 'dashboardBackground'));
     }
 
     /**
@@ -68,7 +91,7 @@ class ProjectController extends Controller
 
         Project::create($validated);
 
-        return redirect()->route('admin')->with('success', 'Project created successfully!');
+        return redirect()->route('admin.projects')->with('success', 'Project created successfully!');
     }
 
     /**
@@ -98,7 +121,7 @@ class ProjectController extends Controller
 
         $project->update($validated);
 
-        return redirect()->route('admin')->with('success', 'Project updated successfully!');
+        return redirect()->route('admin.projects')->with('success', 'Project updated successfully!');
     }
 
     /**
@@ -107,7 +130,7 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
         $project->delete();
-        return redirect()->route('admin')->with('success', 'Project deleted successfully!');
+        return redirect()->route('admin.projects')->with('success', 'Project deleted successfully!');
     }
 
     /**

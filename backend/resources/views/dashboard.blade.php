@@ -1,5 +1,17 @@
 <x-app-layout>
-    <div class="py-12">
+    @php
+        $bgStyle = '';
+        if (!empty($dashboardBackground ?? '')) {
+            if (strpos($dashboardBackground, 'storage/') !== false) {
+                $bgStyle = "background: url('" . asset($dashboardBackground) . "'); background-size: cover; background-position: center; background-repeat: no-repeat;";
+            } elseif (strpos($dashboardBackground, 'http') !== false || strpos($dashboardBackground, 'url(') !== false) {
+                $bgStyle = "background: " . (strpos($dashboardBackground, 'url(') === false ? "url('" . $dashboardBackground . "')" : $dashboardBackground) . "; background-size: cover; background-position: center; background-repeat: no-repeat;";
+            } else {
+                $bgStyle = "background: " . $dashboardBackground . ";";
+            }
+        }
+    @endphp
+    <div class="py-12" @if($bgStyle) style="{{ $bgStyle }} min-height: 100vh;" @endif>
         <div class="w-full px-4 sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
@@ -8,28 +20,34 @@
             @endif
 
             @auth
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6" id="kanban-board">
-                    @php
-                        $statuses = [
-                            'new' => ['title' => 'New', 'bgClass' => 'bg-blue-600'],
-                            'in_progress' => ['title' => 'In Progress', 'bgClass' => 'bg-yellow-600'],
-                            'on_hold' => ['title' => 'On Hold', 'bgClass' => 'bg-orange-600'],
-                            'maintenance' => ['title' => 'Maintenance', 'bgClass' => 'bg-purple-600'],
-                            'completed' => ['title' => 'Completed', 'bgClass' => 'bg-green-600'],
-                            'stopped' => ['title' => 'Stopped', 'bgClass' => 'bg-red-600']
-                        ];
-                        $patternClasses = [
-                            'new' => 'bg-pattern-new',
-                            'in_progress' => 'bg-pattern-in_progress',
-                            'on_hold' => 'bg-pattern-on_hold',
-                            'maintenance' => 'bg-pattern-maintenance',
-                            'completed' => 'bg-pattern-completed',
-                            'stopped' => 'bg-pattern-stopped'
-                        ];
-                    @endphp
+                @php
+                    $statuses = [
+                        'new' => ['title' => 'New', 'bgClass' => 'bg-blue-600'],
+                        'in_progress' => ['title' => 'In Progress', 'bgClass' => 'bg-yellow-600'],
+                        'on_hold' => ['title' => 'On Hold', 'bgClass' => 'bg-orange-600'],
+                        'maintenance' => ['title' => 'Maintenance', 'bgClass' => 'bg-purple-600'],
+                        'completed' => ['title' => 'Completed', 'bgClass' => 'bg-green-600'],
+                        'stopped' => ['title' => 'Stopped', 'bgClass' => 'bg-red-600']
+                    ];
+                    $patternClasses = [
+                        'new' => 'bg-pattern-new',
+                        'in_progress' => 'bg-pattern-in_progress',
+                        'on_hold' => 'bg-pattern-on_hold',
+                        'maintenance' => 'bg-pattern-maintenance',
+                        'completed' => 'bg-pattern-completed',
+                        'stopped' => 'bg-pattern-stopped'
+                    ];
+                    
+                    $visibleColumns = array_filter($statuses, function($status) use ($columnVisibility) {
+                        return $columnVisibility[$status] ?? true;
+                    }, ARRAY_FILTER_USE_KEY);
+                    $columnCount = count($visibleColumns);
+                @endphp
+                <div class="grid gap-6" id="kanban-board" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
 
                     @foreach($statuses as $status => $config)
-                        <div class="board-column" data-status="{{ $status }}" data-column-order="{{ $loop->index }}">
+                        @if($columnVisibility[$status] ?? true)
+                        <div class="board-column" data-status="{{ $status }}" data-column-order="{{ $loop->index }}" data-initial-collapse="{{ ($initialCollapse[$status] ?? false) ? 'true' : 'false' }}">
                             <div class="rounded-lg overflow-hidden shadow-sm border border-gray-200 {{ $patternClasses[$status] }}">
                                 <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 {{ $config['bgClass'] }} column-header cursor-move" title="Drag to reorder columns">
                                     <h2 class="text-sm font-semibold uppercase tracking-wide text-white">
@@ -58,6 +76,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     @endforeach
                 </div>
             @else
@@ -150,7 +169,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const boards = document.querySelectorAll('[id^="board-"]');
             const kanbanBoard = document.getElementById('kanban-board');
-            const updateUrl = '{{ route("projects.update-order") }}';
+            const updateUrl = '{{ route("admin.projects.update-order") }}';
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
             // Make columns draggable by dragging the header
@@ -160,7 +179,13 @@
                 ghostClass: 'ghost-card',
                 filter: '.project-card',
                 preventOnFilter: false,
+                onStart: function(evt) {
+                    // Play sound when column drag starts
+                    playDragStartSound();
+                },
                 onEnd: function(evt) {
+                    // Play sound when column drop completes
+                    playDropSound();
                     // Save column order to localStorage
                     saveColumnOrder();
                 }
@@ -168,6 +193,49 @@
 
             // Load saved column order
             loadColumnOrder();
+
+            // Sound effects for drag and drop
+            function playSound(frequency, duration, type = 'sine') {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = type;
+                    
+                    // Fade out to avoid clicks
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + duration);
+                } catch (e) {
+                    // Silently fail if audio context is not available
+                    console.debug('Audio not available:', e);
+                }
+            }
+
+            // Play drag start sound (higher pitch, short)
+            function playDragStartSound() {
+                playSound(400, 0.1, 'sine');
+            }
+
+            // Play drop sound (lower pitch, slightly longer)
+            function playDropSound() {
+                playSound(300, 0.15, 'sine');
+            }
+
+            // Play success sound when moving to different column (two-tone)
+            function playSuccessSound() {
+                playSound(400, 0.1, 'sine');
+                setTimeout(() => {
+                    playSound(500, 0.1, 'sine');
+                }, 100);
+            }
 
             // Border color mapping
             const statusBorderClasses = {
@@ -201,15 +269,24 @@
                     group: 'projects',
                     animation: 200,
                     ghostClass: 'ghost-card',
+                    onStart: function(evt) {
+                        // Play sound when drag starts
+                        playDragStartSound();
+                    },
                     onEnd: function(evt) {
                         const projectCard = evt.item;
                         const projectId = projectCard.dataset.projectId;
                         const newStatus = evt.to.closest('.board-column').dataset.status;
                         const oldStatus = evt.from.closest('.board-column').dataset.status;
 
+                        // Play drop sound
+                        playDropSound();
+
                         // Update border color immediately when moved to new column
                         if (newStatus !== oldStatus) {
                             updateProjectCardColor(projectCard, newStatus);
+                            // Play success sound when moving to different column
+                            setTimeout(() => playSuccessSound(), 50);
                         }
 
                         if (newStatus !== oldStatus || evt.oldIndex !== evt.newIndex) {
