@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Settings') }}
         </h2>
     </x-slot>
@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             @if(session('success'))
-                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <div class="mb-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-200 px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">{{ session('success') }}</span>
                 </div>
             @endif
@@ -18,10 +18,10 @@
                 @method('PUT')
 
                 <!-- Column Visibility -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Column Visibility</h3>
-                        <p class="text-sm text-gray-600 mb-4">Choose which columns to show or hide on the dashboard.</p>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Column Visibility</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose which columns to show or hide on the dashboard.</p>
                         
                         <div class="space-y-3">
                             @php
@@ -45,7 +45,7 @@
                                         {{ ($settings['column_visibility'][$key] ?? true) ? 'checked' : '' }}
                                         class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                     >
-                                    <label for="column_visibility_{{ $key }}" class="ml-2 text-sm text-gray-700">
+                                    <label for="column_visibility_{{ $key }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
                                         {{ $label }}
                                     </label>
                                 </div>
@@ -55,10 +55,10 @@
                 </div>
 
                 <!-- Initial Collapse State -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Initial Collapse State</h3>
-                        <p class="text-sm text-gray-600 mb-4">Set which columns should be collapsed by default when the dashboard loads.</p>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Initial Collapse State</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Set which columns should be collapsed by default when the dashboard loads.</p>
                         
                         <div class="space-y-3">
                             @foreach($statuses as $key => $label)
@@ -71,7 +71,7 @@
                                         {{ ($settings['initial_collapse'][$key] ?? false) ? 'checked' : '' }}
                                         class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                     >
-                                    <label for="initial_collapse_{{ $key }}" class="ml-2 text-sm text-gray-700">
+                                    <label for="initial_collapse_{{ $key }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
                                         {{ $label }} (collapsed by default)
                                     </label>
                                 </div>
@@ -80,10 +80,32 @@
                     </div>
                 </div>
 
-                <!-- Dashboard Background -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <!-- Dark Mode -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Dashboard Background</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Dark Mode</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Enable dark mode for a better viewing experience in low-light conditions.</p>
+                        
+                        <div class="flex items-center">
+                            <input 
+                                type="checkbox" 
+                                id="dark_mode" 
+                                name="dark_mode" 
+                                value="1"
+                                {{ ($settings['dark_mode'] ?? false) ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                            >
+                            <label for="dark_mode" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                Enable Dark Mode
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Background -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Dashboard Background</h3>
                         <p class="text-sm text-gray-600 mb-4">Set a background color, upload an image, or use an image URL for the dashboard.</p>
                         
                         <div class="space-y-4">
@@ -128,8 +150,8 @@
                             </div>
 
                             <!-- Or Enter URL/Color -->
-                            <div class="border-t pt-4">
-                                <p class="text-sm font-medium text-gray-700 mb-2">Or enter a color or image URL:</p>
+                            <div class="border-t dark:border-gray-700 pt-4">
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Or enter a color or image URL:</p>
                                 <x-input-label for="dashboard_background" :value="__('Background Color or URL')" />
                                 <x-text-input 
                                     id="dashboard_background" 
@@ -149,7 +171,7 @@
                 </div>
 
                 <div class="flex items-center justify-end space-x-3">
-                    <a href="{{ route('admin') }}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    <a href="{{ route('admin') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                         Cancel
                     </a>
                     <x-primary-button>

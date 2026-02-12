@@ -56,6 +56,11 @@ class ProjectController extends Controller
      */
     public function admin()
     {
+        // Only users who can edit can access the backend project management
+        if (!auth()->user()->canEdit()) {
+            abort(403, 'You do not have permission to access project management.');
+        }
+        
         $projects = Project::orderBy('created_at', 'desc')->get();
         return view('admin', compact('projects'));
     }
@@ -65,6 +70,9 @@ class ProjectController extends Controller
      */
     public function create()
     {
+        if (!auth()->user()->canEdit()) {
+            abort(403, 'You do not have permission to create projects.');
+        }
         return view('projects.create');
     }
 
@@ -73,6 +81,10 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
+        if (!auth()->user()->canEdit()) {
+            abort(403, 'You do not have permission to create projects.');
+        }
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -99,6 +111,9 @@ class ProjectController extends Controller
      */
     public function edit(Project $project)
     {
+        if (!auth()->user()->canEdit()) {
+            abort(403, 'You do not have permission to edit projects.');
+        }
         return view('projects.edit', compact('project'));
     }
 
@@ -107,6 +122,10 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
+        if (!auth()->user()->canEdit()) {
+            abort(403, 'You do not have permission to update projects.');
+        }
+        
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -129,15 +148,25 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
+        if (!auth()->user()->hasPermission('delete_projects') && !auth()->user()->isAdmin()) {
+            abort(403, 'You do not have permission to delete projects.');
+        }
+        
         $project->delete();
         return redirect()->route('admin.projects')->with('success', 'Project deleted successfully!');
     }
 
     /**
      * Update project sort orders (for drag and drop).
+     * Allow all authenticated users to drag & drop on dashboard (viewers included).
      */
     public function updateOrder(Request $request)
     {
+        // All authenticated users can drag & drop on dashboard, but only editors/admins can edit in backend
+        if (!auth()->check()) {
+            return response()->json(['error' => 'You must be logged in to update project order.'], 403);
+        }
+        
         $validator = Validator::make($request->all(), [
             'projects' => 'required|array',
             'projects.*.id' => 'required|exists:projects,id',

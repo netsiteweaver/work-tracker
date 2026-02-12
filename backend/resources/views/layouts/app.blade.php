@@ -35,13 +35,13 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('styles')
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+    <body class="font-sans antialiased {{ ($darkMode ?? false) ? 'dark' : '' }}" id="app-body">
+        <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-white shadow">
+                <header class="bg-white dark:bg-gray-800 shadow">
                     <div class="w-full py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
@@ -54,5 +54,74 @@
             </main>
         </div>
         @stack('scripts')
+        
+        <!-- Dark Mode Toggle Script -->
+        @auth
+        <script>
+            // Initialize dark mode on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                const darkMode = {{ $darkMode ? 'true' : 'false' }};
+                if (darkMode) {
+                    document.body.classList.add('dark');
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.body.classList.remove('dark');
+                    document.documentElement.classList.remove('dark');
+                }
+            });
+
+            async function toggleDarkMode() {
+                const body = document.body;
+                const html = document.documentElement;
+                const isDark = body.classList.contains('dark');
+                
+                // Toggle immediately for better UX
+                if (isDark) {
+                    body.classList.remove('dark');
+                    html.classList.remove('dark');
+                } else {
+                    body.classList.add('dark');
+                    html.classList.add('dark');
+                }
+
+                // Save preference to server
+                try {
+                    const response = await fetch('{{ route("admin.settings.update") }}', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            dark_mode: !isDark
+                        })
+                    });
+
+                    if (!response.ok) {
+                        // Revert on error
+                        if (isDark) {
+                            body.classList.add('dark');
+                            html.classList.add('dark');
+                        } else {
+                            body.classList.remove('dark');
+                            html.classList.remove('dark');
+                        }
+                        console.error('Failed to save dark mode preference');
+                    }
+                } catch (error) {
+                    // Revert on error
+                    if (isDark) {
+                        body.classList.add('dark');
+                        html.classList.add('dark');
+                    } else {
+                        body.classList.remove('dark');
+                        html.classList.remove('dark');
+                    }
+                    console.error('Error saving dark mode preference:', error);
+                }
+            }
+        </script>
+        @endauth
     </body>
 </html>

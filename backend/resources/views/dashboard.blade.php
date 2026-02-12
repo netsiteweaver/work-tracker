@@ -48,8 +48,8 @@
                     @foreach($statuses as $status => $config)
                         @if($columnVisibility[$status] ?? true)
                         <div class="board-column" data-status="{{ $status }}" data-column-order="{{ $loop->index }}" data-initial-collapse="{{ ($initialCollapse[$status] ?? false) ? 'true' : 'false' }}">
-                            <div class="rounded-lg overflow-hidden shadow-sm border border-gray-200 {{ $patternClasses[$status] }}">
-                                <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 {{ $config['bgClass'] }} column-header cursor-move" title="Drag to reorder columns">
+                            <div class="rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700 {{ $patternClasses[$status] }}">
+                                <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 {{ $config['bgClass'] }} column-header cursor-move" title="Drag to reorder columns">
                                     <h2 class="text-sm font-semibold uppercase tracking-wide text-white">
                                         {{ $config['title'] }}
                                     </h2>
@@ -80,9 +80,9 @@
                     @endforeach
                 </div>
             @else
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-center">
-                        <p class="text-gray-600 text-lg mb-4">Please log in to view your projects.</p>
+                        <p class="text-gray-600 dark:text-gray-400 text-lg mb-4">Please log in to view your projects.</p>
                         <a href="{{ route('login') }}" class="inline-block px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
                             Login
                         </a>
@@ -172,7 +172,8 @@
             const updateUrl = '{{ route("admin.projects.update-order") }}';
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-            // Make columns draggable by dragging the header
+            // Make columns draggable by dragging the header (all authenticated users can reorder columns)
+            @if(auth()->check())
             new Sortable(kanbanBoard, {
                 animation: 200,
                 handle: '.column-header',
@@ -190,6 +191,7 @@
                     saveColumnOrder();
                 }
             });
+            @endif
 
             // Load saved column order
             loadColumnOrder();
@@ -263,7 +265,8 @@
                 card.setAttribute('data-status', newStatus);
             }
 
-            // Make project cards draggable
+            // Make project cards draggable (all authenticated users can drag & drop on dashboard)
+            @if(auth()->check())
             boards.forEach(board => {
                 new Sortable(board, {
                     group: 'projects',
@@ -295,6 +298,9 @@
                     }
                 });
             });
+            @else
+            // Viewers cannot drag and drop
+            @endif
 
             // Collapsible projects functionality
             window.toggleProject = function(header) {

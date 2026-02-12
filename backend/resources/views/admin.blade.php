@@ -4,9 +4,11 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Project Management') }}
             </h2>
+            @if(auth()->check() && auth()->user()->canEdit())
             <a href="{{ route('admin.projects.create') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                 + New Project
             </a>
+            @endif
         </div>
     </x-slot>
 

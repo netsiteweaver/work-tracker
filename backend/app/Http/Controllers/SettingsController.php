@@ -14,6 +14,11 @@ class SettingsController extends Controller
      */
     public function index()
     {
+        // Only users who can edit can access settings
+        if (!auth()->user()->canEdit()) {
+            abort(403, 'You do not have permission to access settings.');
+        }
+        
         $userId = Auth::id();
         
         // Get current settings or defaults
@@ -35,6 +40,7 @@ class SettingsController extends Controller
                 'stopped' => false,
             ], $userId),
             'dashboard_background' => Setting::get('dashboard_background', '', $userId),
+            'dark_mode' => Setting::get('dark_mode', false, $userId),
         ];
 
         return view('settings.index', compact('settings'));
@@ -45,7 +51,23 @@ class SettingsController extends Controller
      */
     public function update(Request $request)
     {
+        // Only users who can edit can update settings
+        if (!auth()->user()->canEdit()) {
+            abort(403, 'You do not have permission to update settings.');
+        }
+        
         $userId = Auth::id();
+        
+        // Handle JSON requests (for dark mode toggle)
+        if ($request->expectsJson() || $request->isJson()) {
+            $validated = $request->validate([
+                'dark_mode' => 'nullable|boolean',
+            ]);
+            
+            Setting::set('dark_mode', $validated['dark_mode'] ?? false, $userId);
+            
+            return response()->json(['success' => true, 'dark_mode' => $validated['dark_mode'] ?? false]);
+        }
         
         $validated = $request->validate([
             'column_visibility' => 'nullable|array',
@@ -54,6 +76,7 @@ class SettingsController extends Controller
             'initial_collapse.*' => 'boolean',
             'background_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
             'dashboard_background' => 'nullable|string|max:255',
+            'dark_mode' => 'nullable|boolean',
         ]);
 
         // Define all possible statuses
@@ -95,6 +118,9 @@ class SettingsController extends Controller
         }
         
         Setting::set('dashboard_background', $backgroundValue, $userId);
+        
+        // Save dark mode preference
+        Setting::set('dark_mode', $request->has('dark_mode') && $request->dark_mode, $userId);
 
         return redirect()->route('admin.settings')->with('success', 'Settings updated successfully!');
     }
@@ -104,6 +130,11 @@ class SettingsController extends Controller
      */
     public function removeBackground()
     {
+        // Only users who can edit can remove background
+        if (!auth()->user()->canEdit()) {
+            abort(403, 'You do not have permission to modify settings.');
+        }
+        
         $userId = Auth::id();
         
         $background = Setting::get('dashboard_background', '', $userId);

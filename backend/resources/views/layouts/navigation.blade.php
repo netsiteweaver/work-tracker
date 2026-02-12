@@ -1,4 +1,4 @@
-<nav class="sticky top-0 z-40 bg-white shadow-md" x-data="{ showServerDropdown: false }">
+<nav class="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-md" x-data="{ showServerDropdown: false }">
     <div class="w-full px-4 sm:px-6 lg:px-8 py-3">
         <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center space-x-2 md:space-x-4">
@@ -139,7 +139,8 @@
                 @else
                     <!-- Backend Navigation - Only Projects and Settings -->
                     @auth
-                        <!-- Projects -->
+                        <!-- Projects (only for users who can edit) -->
+                        @if(auth()->user()->canEdit())
                         <a
                             href="{{ route('admin.projects') }}"
                             class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors {{ request()->routeIs('admin.projects*') ? 'ring-2 ring-blue-300' : '' }}"
@@ -149,8 +150,10 @@
                             </svg>
                             Projects
                         </a>
+                        @endif
 
-                        <!-- Settings -->
+                        <!-- Settings (only for users who can edit) -->
+                        @if(auth()->user()->canEdit())
                         <a
                             href="{{ route('admin.settings') }}"
                             class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors {{ request()->routeIs('admin.settings*') ? 'ring-2 ring-indigo-300' : '' }}"
@@ -162,6 +165,21 @@
                             </svg>
                             Settings
                         </a>
+                        @endif
+
+                        <!-- Users (only for admins) -->
+                        @if(auth()->check() && auth()->user()->isAdmin())
+                        <a
+                            href="{{ route('admin.users.index') }}"
+                            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors {{ request()->routeIs('admin.users*') ? 'ring-2 ring-green-300' : '' }}"
+                            title="User Management"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            Users
+                        </a>
+                        @endif
                     @endauth
                 @endif
 
@@ -181,8 +199,27 @@
                     </form>
                 @endif
 
-                <!-- Back/Front Toggle (if authenticated) -->
+                <!-- Dark Mode Toggle -->
                 @auth
+                <button
+                    type="button"
+                    onclick="toggleDarkMode()"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-600 dark:bg-yellow-600 text-white rounded hover:bg-gray-700 dark:hover:bg-yellow-700 transition-colors"
+                    title="Toggle Dark Mode"
+                >
+                    <svg id="dark-mode-icon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <svg id="light-mode-icon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <span id="dark-mode-text" class="hidden sm:inline">Dark</span>
+                </button>
+                @endauth
+
+                <!-- Back/Front Toggle (only for users who can edit - viewers don't need it) -->
+                @auth
+                    @if(auth()->user()->canEdit())
                     <a
                         href="{{ request()->routeIs('admin') || request()->routeIs('admin.*') ? route('dashboard') : route('admin') }}"
                         class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
@@ -199,6 +236,7 @@
                             Back
                         @endif
                     </a>
+                    @endif
                 @else
                     <a
                         href="{{ route('dashboard') }}"
