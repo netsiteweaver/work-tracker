@@ -15,7 +15,7 @@
             }
         }
     @endphp
-    <div class="py-12 dashboard-background-container {{ ($darkMode ?? false) && $hasImageBackground ? 'dark-mode-bg-overlay' : '' }}" @if($bgStyle) style="{{ $bgStyle }} min-height: 100vh;" @endif data-has-image-bg="{{ $hasImageBackground ? 'true' : 'false' }}">
+    <div class="py-12 dashboard-background-container {{ ($darkMode ?? false) && $hasImageBackground ? 'dark-mode-bg-overlay' : '' }} {{ $hasImageBackground ? 'has-image-background' : '' }}" @if($bgStyle) style="{{ $bgStyle }} min-height: 100vh;" @endif data-has-image-bg="{{ $hasImageBackground ? 'true' : 'false' }}">
         <div class="w-full px-4 sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
@@ -123,6 +123,40 @@
         .dashboard-background-container.dark-mode-bg-overlay > * {
             position: relative;
             z-index: 1;
+        }
+        
+        /* OpenSource overlay image */
+        .dashboard-background-container.has-image-background {
+            position: relative;
+        }
+        
+        .dashboard-background-container.has-image-background::after {
+            content: '';
+            position: fixed;
+            bottom: 0px;
+            right: 50px;
+            width: 150px;
+            max-width: 20vw;
+            height: auto;
+            aspect-ratio: 1;
+            background-image: url('{{ asset("images/opensource.png") }}');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.7;
+            pointer-events: none;
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        /* Switch to dark version when dark mode is enabled */
+        .dark .dashboard-background-container.has-image-background::after {
+            background-image: url('{{ asset("images/opensource-dark.png") }}');
+        }
+        
+        .dashboard-background-container.has-image-background > * {
+            position: relative;
+            z-index: 3;
         }
         
         .bg-pattern-new {
