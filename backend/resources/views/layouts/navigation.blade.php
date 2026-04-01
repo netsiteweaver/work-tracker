@@ -20,7 +20,7 @@
                     <!-- Frontend Navigation - Service Links -->
                     <!-- Tweezzo -->
                     <a
-                        href="https://app.tweezzo.online/users/signin"
+                        href="https://app.tweezzo.org"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors"
@@ -98,6 +98,8 @@
                     <!-- HMS -->
                     <a
                         href="https://hms.netsiteweaver.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                     >
                         <img src="{{ asset('images/hms-64px.png') }}" alt="HMS" class="w-4 h-4" />
@@ -109,9 +111,9 @@
                         href="https://github.com"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm border-2 border-gray-800 text-gray-800 rounded hover:bg-gray-800 hover:text-white transition-colors"
+                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm border-2 border-gray-800 text-gray-800 rounded hover:bg-gray-800 hover:text-white dark:border-gray-200 dark:text-gray-200 dark:hover:bg-gray-200 dark:hover:text-gray-900 transition-colors"
                     >
-                        <img src="{{ asset('images/github-64px.png') }}" alt="GitHub" class="w-4 h-4" />
+                        <img src="{{ asset('images/github-64px.png') }}" alt="GitHub" class="w-4 h-4 bg-white rounded-sm p-0.5" />
                         GitHub
                     </a>
 
@@ -120,7 +122,7 @@
                         href="https://gitlab.com"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 dark:bg-orange-100 dark:text-orange-900 dark:hover:bg-orange-200 dark:ring-1 dark:ring-orange-300 transition-colors"
                     >
                         <img src="{{ asset('images/gitlab-64px.png') }}" alt="GitLab" class="w-4 h-4" />
                         GitLab
