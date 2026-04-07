@@ -231,6 +231,7 @@
     @push('scripts')
     <script>
         window.__projectsSyncInitial = @json($projectsSyncFingerprint);
+        window.__columnOrderFromServer = @json($kanbanColumnOrder);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
@@ -238,7 +239,10 @@
             const boards = document.querySelectorAll('[id^="board-"]');
             const kanbanBoard = document.getElementById('kanban-board');
             const updateUrl = '{{ route("admin.projects.update-order") }}';
+            const columnOrderUrl = '{{ route("admin.projects.column-order") }}';
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+            loadColumnOrder();
 
             // Make columns draggable by dragging the header (all authenticated users can reorder columns)
             @if(auth()->check())
@@ -260,9 +264,6 @@
                 }
             });
             @endif
-
-            // Load saved column order
-            loadColumnOrder();
 
             // Sound effects for drag and drop
             function playSound(frequency, duration, type = 'sine') {
@@ -571,30 +572,80 @@
                 });
             }
 
-            function saveColumnOrder() {
+            const defaultKanbanStatuses = ['new', 'in_progress', 'on_hold', 'maintenance', 'completed', 'stopped'];
+
+            function mergeVisibleIntoFullOrder(previousFull, visibleDomOrder) {
+                const visible = new Set(visibleDomOrder);
+                let v = 0;
+                const out = [];
+                for (const s of previousFull) {
+                    if (visible.has(s)) {
+                        out.push(visibleDomOrder[v++]);
+                    } else {
+                        out.push(s);
+                    }
+                }
+                return out;
+            }
+
+            function applyColumnOrder(order) {
+                if (!order || !order.length || !kanbanBoard) {
+                    return;
+                }
                 const columns = Array.from(kanbanBoard.children);
-                const order = columns.map(col => col.dataset.status);
-                localStorage.setItem('columnOrder', JSON.stringify(order));
+                const columnMap = new Map(columns.map(col => [col.dataset.status, col]));
+                order.forEach(status => {
+                    const column = columnMap.get(status);
+                    if (column) {
+                        kanbanBoard.appendChild(column);
+                    }
+                });
+            }
+
+            function saveColumnOrder() {
+                const visibleDomOrder = Array.from(kanbanBoard.children).map(col => col.dataset.status);
+                let previous = window.__columnOrderFromServer;
+                if (!previous || previous.length !== defaultKanbanStatuses.length) {
+                    previous = defaultKanbanStatuses;
+                }
+                const order = mergeVisibleIntoFullOrder(previous, visibleDomOrder);
+                window.__columnOrderFromServer = order;
+                fetch(columnOrderUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ order }),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.sync_fingerprint && window.__workTrackerProjectsSync) {
+                            window.__workTrackerProjectsSync.setFingerprint(data.sync_fingerprint);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error saving column order:', err);
+                    });
             }
 
             function loadColumnOrder() {
-                const savedOrder = localStorage.getItem('columnOrder');
-                if (savedOrder) {
+                let order = window.__columnOrderFromServer;
+                if (!order || order.length !== defaultKanbanStatuses.length) {
                     try {
-                        const order = JSON.parse(savedOrder);
-                        const columns = Array.from(kanbanBoard.children);
-                        const columnMap = new Map(columns.map(col => [col.dataset.status, col]));
-                        
-                        order.forEach(status => {
-                            const column = columnMap.get(status);
-                            if (column) {
-                                kanbanBoard.appendChild(column);
-                            }
-                        });
+                        const raw = localStorage.getItem('columnOrder');
+                        order = raw ? JSON.parse(raw) : null;
                     } catch (e) {
-                        console.error('Error loading column order:', e);
+                        order = null;
                     }
                 }
+                applyColumnOrder(order);
             }
         });
     </script>

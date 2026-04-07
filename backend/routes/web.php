@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
         Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
         Route::post('/projects/update-order', [ProjectController::class, 'updateOrder'])->name('projects.update-order');
+        Route::post('/projects/column-order', [ProjectController::class, 'updateColumnOrder'])->name('projects.column-order');
         
         // Admin settings
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings');

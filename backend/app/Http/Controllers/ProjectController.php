@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Setting;
+use App\Support\DashboardSyncState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -37,7 +38,9 @@ class ProjectController extends Controller
         ], $userId);
         
         $dashboardBackground = Setting::get('dashboard_background', '', $userId);
-        
+
+        $kanbanColumnOrder = DashboardSyncState::normalizedColumnOrder($userId);
+
         // Group by status for dashboard
         $projectsByStatus = [
             'new' => $projects->where('status', 'new')->values(),
@@ -48,9 +51,9 @@ class ProjectController extends Controller
             'stopped' => $projects->where('status', 'stopped')->values(),
         ];
         
-        $projectsSyncFingerprint = Project::syncFingerprint();
+        $projectsSyncFingerprint = DashboardSyncState::fingerprint($userId);
 
-        return view('dashboard', compact('projectsByStatus', 'columnVisibility', 'initialCollapse', 'dashboardBackground', 'projectsSyncFingerprint'));
+        return view('dashboard', compact('projectsByStatus', 'columnVisibility', 'initialCollapse', 'dashboardBackground', 'projectsSyncFingerprint', 'kanbanColumnOrder'));
     }
 
     /**
@@ -195,17 +198,57 @@ class ProjectController extends Controller
 
         return response()->json([
             'message' => 'Order updated successfully',
-            'sync_fingerprint' => Project::syncFingerprint(),
+            'sync_fingerprint' => DashboardSyncState::fingerprint(auth()->id()),
         ]);
     }
 
     /**
-     * Lightweight JSON for polling — when projects change in another tab/browser, fingerprint differs.
+     * Persist Kanban column order (per user) for cross-browser sync.
      */
-    public function syncFingerprint()
+    public function updateColumnOrder(Request $request)
     {
+        if (! auth()->check()) {
+            return response()->json(['error' => 'You must be logged in.'], 403);
+        }
+
+        $statuses = DashboardSyncState::defaultColumnOrder();
+        $rule = 'in:'.implode(',', $statuses);
+
+        $validated = $request->validate([
+            'order' => ['required', 'array', 'size:'.count($statuses)],
+            'order.*' => ['required', 'string', $rule],
+        ]);
+
+        $order = $validated['order'];
+        if (count(array_unique($order)) !== count($statuses)) {
+            return response()->json(['errors' => ['order' => ['Each status must appear once.']]], 422);
+        }
+
+        foreach ($statuses as $status) {
+            if (! in_array($status, $order, true)) {
+                return response()->json(['errors' => ['order' => ['Invalid column order.']]], 422);
+            }
+        }
+
+        Setting::set('column_order', $order, auth()->id());
+
         return response()->json([
-            'fingerprint' => Project::syncFingerprint(),
+            'sync_fingerprint' => DashboardSyncState::fingerprint(auth()->id()),
+        ]);
+    }
+
+    /**
+     * Lightweight JSON for polling — when projects (and optional layout) change, fingerprint differs.
+     */
+    public function syncFingerprint(Request $request)
+    {
+        $userId = auth()->id();
+        $includeLayout = $request->query('layout') === '1' && $userId;
+
+        return response()->json([
+            'fingerprint' => $includeLayout
+                ? DashboardSyncState::fingerprint($userId)
+                : Project::syncFingerprint(),
         ]);
     }
 }

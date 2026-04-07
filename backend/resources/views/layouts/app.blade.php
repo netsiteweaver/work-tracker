@@ -174,7 +174,13 @@
         @if(request()->routeIs('dashboard', 'admin.projects'))
         <script>
             (function () {
-                const syncUrl = @json(route('projects.sync-fingerprint'));
+                @php
+                    $syncFingerprintUrl = route('projects.sync-fingerprint');
+                    if (request()->routeIs('dashboard')) {
+                        $syncFingerprintUrl .= (str_contains($syncFingerprintUrl, '?') ? '&' : '?').'layout=1';
+                    }
+                @endphp
+                const syncUrl = @json($syncFingerprintUrl);
                 let lastFingerprint = window.__projectsSyncInitial ?? null;
 
                 window.__workTrackerProjectsSync = {
