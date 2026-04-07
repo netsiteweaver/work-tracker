@@ -48,7 +48,9 @@ class ProjectController extends Controller
             'stopped' => $projects->where('status', 'stopped')->values(),
         ];
         
-        return view('dashboard', compact('projectsByStatus', 'columnVisibility', 'initialCollapse', 'dashboardBackground'));
+        $projectsSyncFingerprint = Project::syncFingerprint();
+
+        return view('dashboard', compact('projectsByStatus', 'columnVisibility', 'initialCollapse', 'dashboardBackground', 'projectsSyncFingerprint'));
     }
 
     /**
@@ -62,7 +64,9 @@ class ProjectController extends Controller
         }
         
         $projects = Project::orderBy('created_at', 'desc')->get();
-        return view('admin', compact('projects'));
+        $projectsSyncFingerprint = Project::syncFingerprint();
+
+        return view('admin', compact('projects', 'projectsSyncFingerprint'));
     }
 
     /**
@@ -189,7 +193,20 @@ class ProjectController extends Controller
             }
         }
 
-        return response()->json(['message' => 'Order updated successfully']);
+        return response()->json([
+            'message' => 'Order updated successfully',
+            'sync_fingerprint' => Project::syncFingerprint(),
+        ]);
+    }
+
+    /**
+     * Lightweight JSON for polling — when projects change in another tab/browser, fingerprint differs.
+     */
+    public function syncFingerprint()
+    {
+        return response()->json([
+            'fingerprint' => Project::syncFingerprint(),
+        ]);
     }
 }
 

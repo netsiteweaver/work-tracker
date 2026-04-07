@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Project extends Model
 {
@@ -36,5 +37,19 @@ class Project extends Model
             'finish_date' => 'date',
             'sort_order' => 'integer',
         ];
+    }
+
+    /**
+     * Value that changes when any project row changes (for cross-tab / cross-browser sync).
+     */
+    public static function syncFingerprint(): string
+    {
+        $row = DB::table('projects')
+            ->selectRaw('COUNT(*) as c')
+            ->selectRaw('COALESCE(MAX(id), 0) as max_id')
+            ->selectRaw('MAX(updated_at) as max_updated')
+            ->first();
+
+        return ($row->c ?? 0).'|'.($row->max_id ?? 0).'|'.($row->max_updated ?? '');
     }
 }

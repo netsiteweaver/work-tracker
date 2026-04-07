@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [ProjectController::class, 'index'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/sync/projects-fingerprint', [ProjectController::class, 'syncFingerprint'])->name('projects.sync-fingerprint');
+
     // Admin landing page
     Route::get('/admin', [AdminController::class, 'index'])->name('admin');
     
