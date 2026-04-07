@@ -170,6 +170,63 @@
                 }
             }
         </script>
+
+        @if(request()->routeIs('dashboard', 'admin.projects'))
+        <script>
+            (function () {
+                const syncUrl = @json(route('projects.sync-fingerprint'));
+                let lastFingerprint = window.__projectsSyncInitial ?? null;
+
+                window.__workTrackerProjectsSync = {
+                    setFingerprint: function (fp) {
+                        if (typeof fp === 'string') {
+                            lastFingerprint = fp;
+                        }
+                    },
+                };
+
+                function poll() {
+                    fetch(syncUrl, {
+                        headers: { Accept: 'application/json' },
+                        credentials: 'same-origin',
+                    })
+                        .then(function (response) {
+                            if (!response.ok) {
+                                return null;
+                            }
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            if (!data || typeof data.fingerprint !== 'string') {
+                                return;
+                            }
+                            if (lastFingerprint === null) {
+                                lastFingerprint = data.fingerprint;
+                                return;
+                            }
+                            if (data.fingerprint !== lastFingerprint) {
+                                window.location.reload();
+                            }
+                        })
+                        .catch(function () {});
+                }
+
+                var intervalMs = function () {
+                    return document.hidden ? 15000 : 4000;
+                };
+                var timerId = null;
+                function schedulePoll() {
+                    if (timerId !== null) {
+                        clearInterval(timerId);
+                    }
+                    timerId = setInterval(poll, intervalMs());
+                }
+                document.addEventListener('visibilitychange', schedulePoll);
+                schedulePoll();
+                poll();
+            })();
+        </script>
+        @endif
         @endauth
     </body>
 </html>

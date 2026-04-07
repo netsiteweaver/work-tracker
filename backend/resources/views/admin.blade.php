@@ -40,5 +40,11 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        window.__projectsSyncInitial = @json($projectsSyncFingerprint);
+    </script>
+    @endpush
 </x-app-layout>
 

@@ -229,6 +229,9 @@
     @endpush
 
     @push('scripts')
+    <script>
+        window.__projectsSyncInitial = @json($projectsSyncFingerprint);
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -557,6 +560,9 @@
                 })
                 .then(data => {
                     console.log('Project order updated successfully:', data);
+                    if (data.sync_fingerprint && window.__workTrackerProjectsSync) {
+                        window.__workTrackerProjectsSync.setFingerprint(data.sync_fingerprint);
+                    }
                 })
                 .catch(err => {
                     console.error('Error updating project order:', err);
