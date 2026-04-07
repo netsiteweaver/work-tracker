@@ -242,6 +242,82 @@
             const columnOrderUrl = '{{ route("admin.projects.column-order") }}';
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
+            const defaultKanbanStatuses = ['new', 'in_progress', 'on_hold', 'maintenance', 'completed', 'stopped'];
+
+            function mergeVisibleIntoFullOrder(previousFull, visibleDomOrder) {
+                const visible = new Set(visibleDomOrder);
+                let v = 0;
+                const out = [];
+                for (const s of previousFull) {
+                    if (visible.has(s)) {
+                        out.push(visibleDomOrder[v++]);
+                    } else {
+                        out.push(s);
+                    }
+                }
+                return out;
+            }
+
+            function applyColumnOrder(order) {
+                if (!order || !order.length || !kanbanBoard) {
+                    return;
+                }
+                const columns = Array.from(kanbanBoard.children);
+                const columnMap = new Map(columns.map(col => [col.dataset.status, col]));
+                order.forEach(status => {
+                    const column = columnMap.get(status);
+                    if (column) {
+                        kanbanBoard.appendChild(column);
+                    }
+                });
+            }
+
+            function saveColumnOrder() {
+                const visibleDomOrder = Array.from(kanbanBoard.children).map(col => col.dataset.status);
+                let previous = window.__columnOrderFromServer;
+                if (!previous || previous.length !== defaultKanbanStatuses.length) {
+                    previous = defaultKanbanStatuses;
+                }
+                const order = mergeVisibleIntoFullOrder(previous, visibleDomOrder);
+                window.__columnOrderFromServer = order;
+                fetch(columnOrderUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ order }),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.sync_fingerprint && window.__workTrackerProjectsSync) {
+                            window.__workTrackerProjectsSync.setFingerprint(data.sync_fingerprint);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error saving column order:', err);
+                    });
+            }
+
+            function loadColumnOrder() {
+                let order = window.__columnOrderFromServer;
+                if (!order || order.length !== defaultKanbanStatuses.length) {
+                    try {
+                        const raw = localStorage.getItem('columnOrder');
+                        order = raw ? JSON.parse(raw) : null;
+                    } catch (e) {
+                        order = null;
+                    }
+                }
+                applyColumnOrder(order);
+            }
+
             loadColumnOrder();
 
             // Make columns draggable by dragging the header (all authenticated users can reorder columns)
@@ -570,82 +646,6 @@
                     alert('Failed to update project order. Please refresh the page.');
                     location.reload();
                 });
-            }
-
-            const defaultKanbanStatuses = ['new', 'in_progress', 'on_hold', 'maintenance', 'completed', 'stopped'];
-
-            function mergeVisibleIntoFullOrder(previousFull, visibleDomOrder) {
-                const visible = new Set(visibleDomOrder);
-                let v = 0;
-                const out = [];
-                for (const s of previousFull) {
-                    if (visible.has(s)) {
-                        out.push(visibleDomOrder[v++]);
-                    } else {
-                        out.push(s);
-                    }
-                }
-                return out;
-            }
-
-            function applyColumnOrder(order) {
-                if (!order || !order.length || !kanbanBoard) {
-                    return;
-                }
-                const columns = Array.from(kanbanBoard.children);
-                const columnMap = new Map(columns.map(col => [col.dataset.status, col]));
-                order.forEach(status => {
-                    const column = columnMap.get(status);
-                    if (column) {
-                        kanbanBoard.appendChild(column);
-                    }
-                });
-            }
-
-            function saveColumnOrder() {
-                const visibleDomOrder = Array.from(kanbanBoard.children).map(col => col.dataset.status);
-                let previous = window.__columnOrderFromServer;
-                if (!previous || previous.length !== defaultKanbanStatuses.length) {
-                    previous = defaultKanbanStatuses;
-                }
-                const order = mergeVisibleIntoFullOrder(previous, visibleDomOrder);
-                window.__columnOrderFromServer = order;
-                fetch(columnOrderUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ order }),
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.sync_fingerprint && window.__workTrackerProjectsSync) {
-                            window.__workTrackerProjectsSync.setFingerprint(data.sync_fingerprint);
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error saving column order:', err);
-                    });
-            }
-
-            function loadColumnOrder() {
-                let order = window.__columnOrderFromServer;
-                if (!order || order.length !== defaultKanbanStatuses.length) {
-                    try {
-                        const raw = localStorage.getItem('columnOrder');
-                        order = raw ? JSON.parse(raw) : null;
-                    } catch (e) {
-                        order = null;
-                    }
-                }
-                applyColumnOrder(order);
             }
         });
     </script>
