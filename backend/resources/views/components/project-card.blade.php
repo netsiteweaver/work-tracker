@@ -15,13 +15,41 @@
     $finishDate = $project->finish_date ? \Carbon\Carbon::parse($project->finish_date) : null;
     $isPastDue = $finishDate && $finishDate->isPast() && !in_array($project->status, ['completed', 'stopped']);
     
-    $cardClasses = 'bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-3 ' . (auth()->check() ? 'cursor-move' : '') . ' hover:shadow-lg transition-shadow border-l-4 ' . $borderClass;
+    $cardClasses = 'relative bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-3 ' . (auth()->check() ? 'cursor-move' : '') . ' hover:shadow-lg transition-shadow border-l-4 ' . $borderClass;
     if ($isPastDue) {
         $cardClasses .= ' ring-2 ring-red-500 ring-opacity-50';
     }
+
+    $canEditProject = auth()->check() && auth()->user()->canEdit();
+
+    // Lowercased haystack used by the project search box (see admin.blade.php)
+    $searchIndex = strtolower(trim(implode(' ', array_filter([
+        $project->name,
+        $project->description,
+        $project->maintenance,
+        $project->dev_path,
+        $project->staging_url,
+        $project->production_url,
+        str_replace('_', ' ', $project->status),
+    ]))));
 @endphp
 
-<div class="{{ $cardClasses }} project-card" data-project-id="{{ $project->id }}" data-status="{{ $project->status }}">
+<div class="{{ $cardClasses }} project-card" data-project-id="{{ $project->id }}" data-status="{{ $project->status }}" data-search="{{ $searchIndex }}">
+    @if($canEditProject)
+        <a href="{{ route('admin.projects.edit', $project) }}"
+           class="project-edit-fab"
+           draggable="false"
+           title="Edit {{ $project->name }}"
+           aria-label="Edit {{ $project->name }}"
+           onclick="event.stopPropagation();"
+           onmousedown="event.stopPropagation();"
+           ontouchstart="event.stopPropagation();">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+            </svg>
+        </a>
+    @endif
+
     <div class="flex justify-between items-start mb-2 cursor-pointer project-header" onclick="toggleProject(this)">
         <div class="flex items-center gap-2 flex-wrap">
             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ $project->name }}</h3>
@@ -122,3 +150,59 @@
     @endif
 </div>
 
+@once
+@push('styles')
+<style>
+    /* Floating quick-edit icon on project cards */
+    .project-edit-fab {
+        position: absolute;
+        top: -0.5rem;
+        right: -0.5rem;
+        z-index: 5;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 9999px;
+        background-color: #2563eb;
+        color: #ffffff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        transform: scale(0.8);
+        pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+    }
+    .project-card:hover .project-edit-fab,
+    .project-edit-fab:focus,
+    .project-edit-fab:focus-visible {
+        opacity: 1;
+        transform: scale(1);
+        pointer-events: auto;
+    }
+    .project-edit-fab:hover {
+        background-color: #1d4ed8;
+        transform: scale(1.1);
+    }
+    .project-edit-fab:focus-visible {
+        outline: 2px solid #1d4ed8;
+        outline-offset: 2px;
+    }
+    .project-edit-fab svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+    .dark .project-edit-fab {
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    }
+    /* Touch devices have no hover, so keep the icon permanently visible */
+    @media (hover: none) {
+        .project-edit-fab {
+            opacity: 0.9;
+            transform: none;
+            pointer-events: auto;
+        }
+    }
+</style>
+@endpush
+@endonce
