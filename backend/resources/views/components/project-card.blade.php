@@ -45,13 +45,14 @@
            onmousedown="event.stopPropagation();"
            ontouchstart="event.stopPropagation();">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
         </a>
     @endif
 
     <div class="flex justify-between items-start mb-2 cursor-pointer project-header" onclick="toggleProject(this)">
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap project-title-wrap">
             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ $project->name }}</h3>
             @if($isPastDue)
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200" title="Past due date">
@@ -153,25 +154,24 @@
 @once
 @push('styles')
 <style>
-    /* Floating quick-edit icon on project cards */
+    /* Quick-edit gear, sitting inside the card just left of the chevron */
     .project-edit-fab {
         position: absolute;
-        top: -0.5rem;
-        right: -0.5rem;
+        top: 0.5rem;
+        right: 2.5rem;
         z-index: 5;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: 9999px;
-        background-color: #2563eb;
-        color: #ffffff;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 0.25rem;
+        background: none;
+        color: #6b7280;
         opacity: 0;
         transform: scale(0.8);
         pointer-events: none;
-        transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+        transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
     }
     .project-card:hover .project-edit-fab,
     .project-edit-fab:focus,
@@ -181,19 +181,27 @@
         pointer-events: auto;
     }
     .project-edit-fab:hover {
-        background-color: #1d4ed8;
+        color: #2563eb;
         transform: scale(1.1);
     }
     .project-edit-fab:focus-visible {
         outline: 2px solid #1d4ed8;
         outline-offset: 2px;
     }
+    /* Only reserve room for the gear when it is actually rendered, so a long
+       project name cannot slide underneath it. */
+    .project-edit-fab ~ .project-header .project-title-wrap {
+        padding-right: 2.25rem;
+    }
     .project-edit-fab svg {
-        width: 0.875rem;
-        height: 0.875rem;
+        width: 1rem;
+        height: 1rem;
     }
     .dark .project-edit-fab {
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+        color: #9ca3af;
+    }
+    .dark .project-edit-fab:hover {
+        color: #60a5fa;
     }
     /* Touch devices have no hover, so keep the icon permanently visible */
     @media (hover: none) {
