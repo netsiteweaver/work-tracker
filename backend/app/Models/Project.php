@@ -16,6 +16,7 @@ class Project extends Model
         'name',
         'description',
         'maintenance',
+        'image',
         'dev_path',
         'staging_url',
         'production_url',
@@ -51,5 +52,13 @@ class Project extends Model
             ->first();
 
         return ($row->c ?? 0).'|'.($row->max_id ?? 0).'|'.($row->max_updated ?? '');
+    }
+
+    /**
+     * Get the public URL of the project image, if any.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
     }
 }

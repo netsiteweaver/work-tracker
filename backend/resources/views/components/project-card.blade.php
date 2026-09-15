@@ -19,6 +19,9 @@
     if ($isPastDue) {
         $cardClasses .= ' ring-2 ring-red-500 ring-opacity-50';
     }
+    if ($project->image) {
+        $cardClasses .= ' project-card-image';
+    }
 
     $canEditProject = auth()->check() && auth()->user()->canEdit();
 
@@ -34,7 +37,7 @@
     ]))));
 @endphp
 
-<div class="{{ $cardClasses }} project-card" data-project-id="{{ $project->id }}" data-status="{{ $project->status }}" data-search="{{ $searchIndex }}">
+<div class="{{ $cardClasses }} project-card" data-project-id="{{ $project->id }}" data-status="{{ $project->status }}" data-search="{{ $searchIndex }}" @if($project->image) style="--project-image: url('{{ $project->image_url }}')" @endif>
     @if($canEditProject)
         <a href="{{ route('admin.projects.edit', $project) }}"
            class="project-edit-fab"

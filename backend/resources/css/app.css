@@ -2,3 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Project card background image, with a translucent overlay to keep text readable */
+.project-card-image {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), var(--project-image);
+    background-size: cover;
+    background-position: center;
+}
+
+.dark .project-card-image {
+    background-image: linear-gradient(rgba(31, 41, 55, 0.8), rgba(31, 41, 55, 0.8)), var(--project-image);
+}
+

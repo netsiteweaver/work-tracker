@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Setting;
 use App\Support\DashboardSyncState;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ProjectController extends Controller
@@ -102,7 +103,12 @@ class ProjectController extends Controller
             'status' => 'required|in:new,in_progress,on_hold,maintenance,completed,stopped',
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date|after_or_equal:start_date',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200',
         ]);
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('projects', 'public');
+        }
 
         // Set sort_order to the end
         $maxOrder = Project::where('status', $validated['status'])->max('sort_order') ?? -1;
@@ -143,7 +149,19 @@ class ProjectController extends Controller
             'status' => 'sometimes|required|in:new,in_progress,on_hold,maintenance,completed,stopped',
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200',
+            'remove_image' => 'nullable|boolean',
         ]);
+        unset($validated['image'], $validated['remove_image']);
+
+        // Replace or remove the image, deleting the old file either way
+        if ($request->hasFile('image')) {
+            $this->deleteImage($project);
+            $validated['image'] = $request->file('image')->store('projects', 'public');
+        } elseif ($request->boolean('remove_image')) {
+            $this->deleteImage($project);
+            $validated['image'] = null;
+        }
 
         $project->update($validated);
 
@@ -159,8 +177,19 @@ class ProjectController extends Controller
             abort(403, 'You do not have permission to delete projects.');
         }
         
+        $this->deleteImage($project);
         $project->delete();
         return redirect()->route('admin.projects')->with('success', 'Project deleted successfully!');
+    }
+
+    /**
+     * Delete the project's stored image file, if any.
+     */
+    private function deleteImage(Project $project): void
+    {
+        if ($project->image && Storage::disk('public')->exists($project->image)) {
+            Storage::disk('public')->delete($project->image);
+        }
     }
 
     /**
