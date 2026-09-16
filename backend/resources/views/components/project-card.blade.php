@@ -19,7 +19,12 @@
     if ($isPastDue) {
         $cardClasses .= ' ring-2 ring-red-500 ring-opacity-50';
     }
-    if ($project->image) {
+    // An image is either painted behind the card or shown beside the text
+    $imageSide = $project->image && in_array($project->image_position, ['left', 'right'], true)
+        ? $project->image_position
+        : null;
+    $hasBackgroundImage = $project->image && !$imageSide;
+    if ($hasBackgroundImage) {
         $cardClasses .= ' project-card-image';
     }
 
@@ -37,9 +42,9 @@
     ]))));
 @endphp
 
-<div class="{{ $cardClasses }} project-card" data-project-id="{{ $project->id }}" data-status="{{ $project->status }}" data-search="{{ $searchIndex }}" @if($project->image) style="--project-image: url('{{ $project->image_url }}')" @endif>
+<div class="{{ $cardClasses }} project-card" data-project-id="{{ $project->id }}" data-status="{{ $project->status }}" data-search="{{ $searchIndex }}" @if($hasBackgroundImage) style="--project-image: url('{{ $project->image_url }}')" @endif>
     @if($canEditProject)
-        <a href="{{ route('admin.projects.edit', $project) }}"
+        <a href="{{ route('admin.projects.edit', [$project, 'from' => request()->routeIs('dashboard') ? 'dashboard' : null]) }}"
            class="project-edit-fab"
            draggable="false"
            title="Edit {{ $project->name }}"
@@ -72,6 +77,11 @@
     </div>
 
     <div class="project-content">
+        <div class="flex gap-3 {{ $imageSide === 'right' ? 'flex-row-reverse' : '' }}">
+            @if($imageSide)
+                <img src="{{ $project->image_url }}" alt="{{ $project->name }}" class="w-24 h-24 flex-shrink-0 rounded-md object-cover border border-gray-200 dark:border-gray-700" />
+            @endif
+            <div class="min-w-0 flex-1">
         @if($project->description)
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">{{ $project->description }}</p>
         @endif
@@ -131,6 +141,8 @@
                 <span class="text-gray-700 dark:text-gray-300">{{ $project->maintenance }}</span>
             </div>
         @endif
+        </div>
+            </div>
         </div>
     </div>
 

@@ -17,6 +17,7 @@ class Project extends Model
         'description',
         'maintenance',
         'image',
+        'image_position',
         'dev_path',
         'staging_url',
         'production_url',

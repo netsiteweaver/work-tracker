@@ -104,7 +104,10 @@ class ProjectController extends Controller
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date|after_or_equal:start_date',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200',
+            'image_position' => 'nullable|in:background,left,right',
         ]);
+
+        $validated['image_position'] = $validated['image_position'] ?? 'background';
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('projects', 'public');
@@ -122,12 +125,14 @@ class ProjectController extends Controller
     /**
      * Show the form for editing a project.
      */
-    public function edit(Project $project)
+    public function edit(Request $request, Project $project)
     {
         if (!auth()->user()->canEdit()) {
             abort(403, 'You do not have permission to edit projects.');
         }
-        return view('projects.edit', compact('project'));
+        // Remember which page the edit was launched from so saving returns there
+        $returnTo = $request->query('from') === 'dashboard' ? 'dashboard' : 'admin';
+        return view('projects.edit', compact('project', 'returnTo'));
     }
 
     /**
@@ -150,9 +155,11 @@ class ProjectController extends Controller
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200',
+            'image_position' => 'nullable|in:background,left,right',
             'remove_image' => 'nullable|boolean',
+            'return_to' => 'nullable|in:dashboard,admin',
         ]);
-        unset($validated['image'], $validated['remove_image']);
+        unset($validated['image'], $validated['remove_image'], $validated['return_to']);
 
         // Replace or remove the image, deleting the old file either way
         if ($request->hasFile('image')) {
@@ -165,7 +172,9 @@ class ProjectController extends Controller
 
         $project->update($validated);
 
-        return redirect()->route('admin.projects')->with('success', 'Project updated successfully!');
+        $route = $request->input('return_to') === 'dashboard' ? 'dashboard' : 'admin.projects';
+
+        return redirect()->route($route)->with('success', 'Project updated successfully!');
     }
 
     /**

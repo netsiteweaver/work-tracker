@@ -12,6 +12,7 @@
                     <form action="{{ route('admin.projects.update', $project) }}" method="POST" class="space-y-4" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
+                        <input type="hidden" name="return_to" value="{{ old('return_to', $returnTo) }}">
 
                         <div>
                             <x-input-label for="name" :value="__('Name')" />
@@ -62,6 +63,19 @@
                                 </div>
                             </div>
                             @error('image')
+                                <x-input-error class="mt-2" :messages="[$message]" />
+                            @enderror
+                        </div>
+
+                        <div>
+                            <x-input-label for="image_position" :value="__('Image Display')" />
+                            <select id="image_position" name="image_position" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="background" {{ old('image_position', $project->image_position) == 'background' ? 'selected' : '' }}>Background of the card</option>
+                                <option value="left" {{ old('image_position', $project->image_position) == 'left' ? 'selected' : '' }}>Left of the text</option>
+                                <option value="right" {{ old('image_position', $project->image_position) == 'right' ? 'selected' : '' }}>Right of the text</option>
+                            </select>
+                            <p class="mt-2 text-xs text-gray-500">Where the image appears on the project card. Only used when an image is set.</p>
+                            @error('image_position')
                                 <x-input-error class="mt-2" :messages="[$message]" />
                             @enderror
                         </div>
@@ -126,7 +140,7 @@
                         </div>
 
                         <div class="flex items-center justify-end space-x-3">
-                            <a href="{{ route('admin.projects') }}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            <a href="{{ $returnTo === 'dashboard' ? route('dashboard') : route('admin.projects') }}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
                                 Cancel
                             </a>
                             <x-primary-button>

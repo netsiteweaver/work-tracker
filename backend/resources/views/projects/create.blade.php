@@ -56,6 +56,19 @@
                             @enderror
                         </div>
 
+                        <div>
+                            <x-input-label for="image_position" :value="__('Image Display')" />
+                            <select id="image_position" name="image_position" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="background" {{ old('image_position', 'background') == 'background' ? 'selected' : '' }}>Background of the card</option>
+                                <option value="left" {{ old('image_position', 'background') == 'left' ? 'selected' : '' }}>Left of the text</option>
+                                <option value="right" {{ old('image_position', 'background') == 'right' ? 'selected' : '' }}>Right of the text</option>
+                            </select>
+                            <p class="mt-2 text-xs text-gray-500">Where the image appears on the project card. Only used when an image is set.</p>
+                            @error('image_position')
+                                <x-input-error class="mt-2" :messages="[$message]" />
+                            @enderror
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <x-input-label for="dev_path" :value="__('Dev Path')" />
