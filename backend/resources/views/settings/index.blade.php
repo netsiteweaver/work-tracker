@@ -208,6 +208,50 @@
                     </x-primary-button>
                 </div>
             </form>
+
+            <!-- Top Menu Order -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mt-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Top Menu Order</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Drag a top menu item to pin it to a fixed position; items you have not pinned
+                        arrange themselves with the most-clicked first. Click an item's pin badge to
+                        pin or unpin it without dragging.
+                    </p>
+
+                    @php
+                        $navPins = \App\Support\NavMenu::pins();
+                        $navUsage = \App\Support\NavMenu::usage();
+                        arsort($navUsage);
+                    @endphp
+
+                    <div class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                        <p class="mb-1">
+                            <span class="font-medium">Pinned:</span>
+                            {{ count($navPins) ? implode(', ', array_keys($navPins)) : 'none' }}
+                        </p>
+                        <p>
+                            <span class="font-medium">Most used:</span>
+                            @if(count($navUsage))
+                                {{ implode(', ', array_map(
+                                    fn ($key, $count) => $key.' ('.$count.')',
+                                    array_keys(array_slice($navUsage, 0, 5, true)),
+                                    array_slice($navUsage, 0, 5, true)
+                                )) }}
+                            @else
+                                no clicks recorded yet
+                            @endif
+                        </p>
+                    </div>
+
+                    <form action="{{ route('nav.reset') }}" method="POST">
+                        @csrf
+                        <x-secondary-button type="submit">
+                            {{ __('Reset Menu Order') }}
+                        </x-secondary-button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     

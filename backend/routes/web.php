@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\NavigationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SettingsController;
@@ -11,6 +12,11 @@ Route::get('/', [ProjectController::class, 'index'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/sync/projects-fingerprint', [ProjectController::class, 'syncFingerprint'])->name('projects.sync-fingerprint');
+
+    // Top menu personalisation
+    Route::post('/nav/usage', [NavigationController::class, 'track'])->name('nav.usage');
+    Route::post('/nav/pin', [NavigationController::class, 'pin'])->name('nav.pin');
+    Route::post('/nav/reset', [NavigationController::class, 'reset'])->name('nav.reset');
 
     // Admin landing page
     Route::get('/admin', [AdminController::class, 'index'])->name('admin');

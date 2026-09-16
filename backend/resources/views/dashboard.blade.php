@@ -233,7 +233,6 @@
         window.__projectsSyncInitial = @json($projectsSyncFingerprint);
         window.__columnOrderFromServer = @json($kanbanColumnOrder);
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const boards = document.querySelectorAll('[id^="board-"]');

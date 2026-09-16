@@ -1,4 +1,12 @@
-<nav class="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-md" x-data="{ showServerDropdown: false }">
+@php
+    use App\Support\NavMenu;
+
+    $isBackendRoute = request()->routeIs('admin') || request()->routeIs('admin.*');
+    $navGroup = $isBackendRoute ? 'backend' : 'frontend';
+    $navItems = NavMenu::items($navGroup);
+@endphp
+
+<nav class="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-md">
     <div class="w-full px-4 sm:px-6 lg:px-8 py-3">
         <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center space-x-2 md:space-x-4">
@@ -11,195 +19,96 @@
                 </a>
             </div>
 
-            <div class="flex items-center space-x-2 md:space-x-3 flex-wrap">
-                @php
-                    $isBackendRoute = request()->routeIs('admin') || request()->routeIs('admin.*');
-                @endphp
-
-                @if(!$isBackendRoute)
-                    <!-- Frontend Navigation - Service Links -->
-                    <!-- Tweezzo -->
-                    <a
-                        href="https://app.tweezzo.org"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors"
-                    >
-                        <img src="{{ asset('images/tweezzo-64px.png') }}" alt="Tweezzo" class="w-4 h-4" />
-                        Tweezzo
-                    </a>
-
-                    <!-- phpMyAdmin -->
-                    <a
-                        href="http://localhost/phpmyadmin"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
-                    >
-                        <img src="{{ asset('images/phpmyadmin-64px.png') }}" alt="phpMyAdmin" class="w-4 h-4" />
-                        phpMyAdmin
-                    </a>
-
-                    <!-- Server Dropdown -->
-                    <div class="relative" x-ref="serverDropdown" @click.away="showServerDropdown = false">
-                        <button
-                            @click.stop="showServerDropdown = !showServerDropdown"
-                            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-green-400 text-white rounded hover:bg-green-500 transition-colors"
-                        >
-                            <img src="{{ asset('images/servers-64px.png') }}" alt="Server" class="w-4 h-4" />
-                            Server
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
+            <div class="flex items-center gap-2 md:gap-3 flex-wrap">
+                <!-- Sortable menu items: drag to pin an item to a slot, the rest sort by clicks -->
+                <div
+                    id="nav-sortable"
+                    data-nav-group="{{ $navGroup }}"
+                    class="flex items-center gap-2 md:gap-3 flex-wrap"
+                >
+                    @foreach($navItems as $item)
                         <div
-                            x-show="showServerDropdown"
-                            x-transition
-                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50"
-                            style="display: none;"
+                            class="nav-item group relative"
+                            data-nav-key="{{ $item['key'] }}"
+                            data-nav-pinned="{{ !empty($item['pinned']) ? 'true' : 'false' }}"
+                            data-nav-children="{{ !empty($item['children']) ? 'true' : 'false' }}"
                         >
-                            <!-- Notch/Arrow pointing up -->
-                            <div class="absolute -top-2 right-4 w-4 h-4 bg-white border-l border-t border-gray-200 transform rotate-45"></div>
-                            <div class="relative bg-white rounded-md">
+                            @if(!empty($item['children']))
+                                <div x-data="{ open: false }" @click.away="open = false">
+                                    <button
+                                        @click.stop="open = !open"
+                                        class="nav-trigger flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors {{ $item['classes'] }}"
+                                    >
+                                        <img src="{{ asset($item['image']) }}" alt="{{ $item['label'] }}" class="w-4 h-4" />
+                                        {{ $item['label'] }}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div
+                                        x-show="open"
+                                        x-transition
+                                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50"
+                                        style="display: none;"
+                                    >
+                                        <!-- Notch/Arrow pointing up -->
+                                        <div class="absolute -top-2 right-4 w-4 h-4 bg-white border-l border-t border-gray-200 transform rotate-45"></div>
+                                        <div class="relative bg-white rounded-md">
+                                            @foreach($item['children'] as $child)
+                                                <a
+                                                    href="{{ $child['url'] }}"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    @click="open = false"
+                                                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors first:rounded-t-md last:rounded-b-md"
+                                                >
+                                                    <img src="{{ asset($child['image']) }}" alt="{{ $child['label'] }}" class="w-4 h-4" />
+                                                    {{ $child['label'] }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @elseif(!empty($item['route']))
                                 <a
-                                    href="https://my.hosting.com/login"
+                                    href="{{ route($item['route']) }}"
+                                    draggable="false"
+                                    title="{{ $item['label'] }}"
+                                    class="nav-trigger flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors {{ $item['classes'] }} {{ request()->routeIs($item['active']) ? ($item['active_classes'] ?? '') : '' }}"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        @foreach($item['icon'] ?? [] as $path)
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $path }}" />
+                                        @endforeach
+                                    </svg>
+                                    {{ $item['label'] }}
+                                </a>
+                            @else
+                                <a
+                                    href="{{ $item['url'] }}"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    @click="showServerDropdown = false"
-                                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors first:rounded-t-md last:rounded-b-md"
+                                    draggable="false"
+                                    class="nav-trigger flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors {{ $item['classes'] }}"
                                 >
-                                    <img src="{{ asset('images/hosting.com-64px.png') }}" alt="Hosting.com" class="w-4 h-4" />
-                                    Hosting.com
+                                    <img src="{{ asset($item['image']) }}" alt="{{ $item['label'] }}" class="w-4 h-4 {{ $item['image_classes'] ?? '' }}" />
+                                    {{ $item['label'] }}
                                 </a>
-                                <a
-                                    href="https://my.contabo.com/account/login"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    @click="showServerDropdown = false"
-                                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors first:rounded-t-md last:rounded-b-md"
-                                >
-                                    <img src="{{ asset('images/contabo-64px.png') }}" alt="Contabo.com" class="w-4 h-4" />
-                                    Contabo.com
-                                </a>
-                                <a
-                                    href="https://my.cloud.mu/index.php?rp=/login"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    @click="showServerDropdown = false"
-                                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors first:rounded-t-md last:rounded-b-md"
-                                >
-                                    <img src="{{ asset('images/cloud.mu-64px.png') }}" alt="Cloud.mu" class="w-4 h-4" />
-                                    Cloud.mu
-                                </a>
-                            </div>
+                            @endif
+
+                            <button
+                                type="button"
+                                class="nav-pin absolute -top-1.5 -left-1.5 w-4 h-4 flex items-center justify-center rounded-full bg-gray-900 text-white shadow ring-1 ring-white dark:ring-gray-800 transition-opacity opacity-0 group-hover:opacity-60 hover:!opacity-100"
+                                title="Pin to this position"
+                                aria-label="Pin {{ $item['label'] }} to this position"
+                            >
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M16 3v2l1 1v4l3 3v2h-7v5l-1 2-1-2v-5H4v-2l3-3V6l1-1V3h8z" />
+                                </svg>
+                            </button>
                         </div>
-                    </div>
-
-                    <!-- HMS -->
-                    <a
-                        href="https://hms.netsiteweaver.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                    >
-                        <img src="{{ asset('images/hms-64px.png') }}" alt="HMS" class="w-4 h-4" />
-                        HMS
-                    </a>
-
-                    <!-- GitHub -->
-                    <a
-                        href="https://github.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm border-2 border-gray-800 text-gray-800 rounded hover:bg-gray-800 hover:text-white dark:border-gray-200 dark:text-gray-200 dark:hover:bg-gray-200 dark:hover:text-gray-900 transition-colors"
-                    >
-                        <img src="{{ asset('images/github-64px.png') }}" alt="GitHub" class="w-4 h-4 bg-white rounded-sm p-0.5" />
-                        GitHub
-                    </a>
-
-                    <!-- GitLab -->
-                    <a
-                        href="https://gitlab.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 dark:bg-orange-100 dark:text-orange-900 dark:hover:bg-orange-200 dark:ring-1 dark:ring-orange-300 transition-colors"
-                    >
-                        <img src="{{ asset('images/gitlab-64px.png') }}" alt="GitLab" class="w-4 h-4" />
-                        GitLab
-                    </a>
-
-                    <!-- WhatsApp -->
-                    <a
-                        href="https://web.whatsapp.com/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                    >
-                        <img src="{{ asset('images/whatsapp-64px.png') }}" alt="WhatsApp" class="w-4 h-4" />
-                        WhatsApp
-                    </a>
-                @else
-                    <!-- Backend Navigation - Only Projects and Settings -->
-                    @auth
-                        <!-- Projects (only for users who can edit) -->
-                        @if(auth()->user()->canEdit())
-                        <a
-                            href="{{ route('admin.projects') }}"
-                            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors {{ request()->routeIs('admin.projects*') ? 'ring-2 ring-blue-300' : '' }}"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            Projects
-                        </a>
-                        @endif
-
-                        <!-- Settings (only for users who can edit) -->
-                        @if(auth()->user()->canEdit())
-                        <a
-                            href="{{ route('admin.settings') }}"
-                            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors {{ request()->routeIs('admin.settings*') ? 'ring-2 ring-indigo-300' : '' }}"
-                            title="Settings"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Settings
-                        </a>
-                        @endif
-
-                        <!-- Users (only for admins) -->
-                        @if(auth()->check() && auth()->user()->isAdmin())
-                        <a
-                            href="{{ route('admin.users.index') }}"
-                            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors {{ request()->routeIs('admin.users*') ? 'ring-2 ring-green-300' : '' }}"
-                            title="User Management"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                            Users
-                        </a>
-                        @endif
-                    @endauth
-                @endif
-
-                <!-- Logout (if authenticated) -->
-                @auth
-                    <form action="{{ route('logout') }}" method="POST" class="inline">
-                        @csrf
-                        <button
-                            type="submit"
-                            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            Logout
-                        </button>
-                    </form>
-                @endif
+                    @endforeach
+                </div>
 
                 <!-- Dark Mode Toggle -->
                 @auth
@@ -222,10 +131,10 @@
                 <!-- Back/Front Toggle (for all authenticated users) -->
                 @auth
                     <a
-                        href="{{ request()->routeIs('admin') || request()->routeIs('admin.*') ? route('dashboard') : route('admin') }}"
+                        href="{{ $isBackendRoute ? route('dashboard') : route('admin') }}"
                         class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
                     >
-                        @if(request()->routeIs('admin') || request()->routeIs('admin.*'))
+                        @if($isBackendRoute)
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                             </svg>
@@ -261,7 +170,25 @@
                         Login
                     </a>
                 @endguest
+
+                <!-- Logout (if authenticated) -->
+                @auth
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Logout
+                        </button>
+                    </form>
+                @endauth
             </div>
         </div>
     </div>
 </nav>
+
+@include('layouts.navigation-order')
