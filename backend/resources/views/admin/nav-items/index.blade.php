@@ -117,16 +117,41 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Colour</label>
-                            <select id="navPreset" onchange="applyPreset(this.value)"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 shadow-sm">
-                                <option value="">Custom / none</option>
-                                @foreach($presets as $name => $classes)
-                                    <option value="{{ $classes }}">{{ $name }}</option>
+                            <div class="flex items-center justify-between">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Colour</label>
+                                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                    <input type="checkbox" name="outline" id="navOutline" value="1"
+                                        onchange="renderPreview()" class="rounded border-gray-300">
+                                    Outline
+                                </label>
+                            </div>
+
+                            <input type="hidden" name="color" id="navColor" value="">
+                            <div id="navSwatches" class="mt-2 grid grid-cols-11 gap-1.5">
+                                @foreach($colors as $color)
+                                    <button type="button" data-color="{{ $color }}" onclick="pickColor('{{ $color }}')"
+                                        title="{{ ucfirst($color) }}"
+                                        class="nav-swatch h-7 rounded bg-{{ $color }}-600 ring-offset-1 dark:ring-offset-gray-800 transition"></button>
                                 @endforeach
-                            </select>
-                            <input type="text" name="classes" id="navClasses" placeholder="Tailwind classes"
-                                class="mt-2 block w-full rounded-md border-gray-300 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 shadow-sm font-mono text-xs">
+                            </div>
+
+                            <div class="mt-3 flex items-center gap-3">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Preview</span>
+                                <span id="navPreview" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded">Button</span>
+                                <button type="button" onclick="pickColor('')"
+                                    class="ml-auto text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 underline">
+                                    Use custom classes
+                                </button>
+                            </div>
+
+                            <div id="navCustomWrap" class="mt-2 hidden">
+                                <input type="text" name="classes" id="navClasses" placeholder="Tailwind classes"
+                                    class="block w-full rounded-md border-gray-300 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 shadow-sm font-mono text-xs">
+                                <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                                    Classes typed here must also survive the CSS build &mdash; add them to the
+                                    safelist in tailwind.config.js, or pick a colour above instead.
+                                </p>
+                            </div>
                         </div>
 
                         <div>
@@ -176,7 +201,8 @@
             document.getElementById('navClasses').value = isEdit && data.classes ? data.classes : '';
             document.getElementById('navImageClasses').value = isEdit && data.image_classes ? data.image_classes : '';
             document.getElementById('navActive').checked = isEdit ? !!data.is_active : true;
-            document.getElementById('navPreset').value = '';
+            document.getElementById('navOutline').checked = isEdit ? !!data.outline : false;
+            pickColor(isEdit ? (data.color || '') : @json(App\Support\NavColors::DEFAULT));
 
             // An item with its own dropdown entries can neither be nested nor need a link.
             const hasChildren = isEdit && data.has_children;
@@ -212,11 +238,47 @@
             document.getElementById('navModal').classList.add('hidden');
         }
 
-        function applyPreset(value) {
-            if (value) {
-                document.getElementById('navClasses').value = value;
-            }
+        const NAV_FILLED = 'bg-{c}-600 text-white hover:bg-{c}-700';
+        const NAV_OUTLINE = 'border-2 border-{c}-600 text-{c}-700 hover:bg-{c}-600 hover:text-white '
+            + 'dark:border-{c}-400 dark:text-{c}-300 dark:hover:bg-{c}-500 dark:hover:text-white';
+
+        /** Mirror of App\Support\NavColors::classes(), for the live preview. */
+        function colorClasses(color, outline) {
+            return (outline ? NAV_OUTLINE : NAV_FILLED).replace(/\{c\}/g, color);
         }
+
+        function pickColor(color) {
+            document.getElementById('navColor').value = color;
+
+            document.querySelectorAll('.nav-swatch').forEach(function (swatch) {
+                const on = swatch.dataset.color === color;
+                swatch.classList.toggle('ring-2', on);
+                swatch.classList.toggle('ring-gray-900', on);
+                swatch.classList.toggle('dark:ring-white', on);
+                swatch.classList.toggle('opacity-40', !!color && !on);
+            });
+
+            // No colour means the item is styled by a hand-written class string.
+            document.getElementById('navCustomWrap').classList.toggle('hidden', !!color);
+            renderPreview();
+        }
+
+        function renderPreview() {
+            const color = document.getElementById('navColor').value;
+            const outline = document.getElementById('navOutline').checked;
+            const preview = document.getElementById('navPreview');
+            const custom = document.getElementById('navClasses').value;
+
+            preview.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded '
+                + (color ? colorClasses(color, outline) : (custom || 'bg-gray-200 text-gray-800'));
+            preview.textContent = document.getElementById('navLabel').value || 'Button';
+        }
+
+        document.addEventListener('input', function (event) {
+            if (event.target.id === 'navLabel' || event.target.id === 'navClasses') {
+                renderPreview();
+            }
+        });
 
         document.getElementById('navModal').addEventListener('click', function (event) {
             if (event.target === this) {

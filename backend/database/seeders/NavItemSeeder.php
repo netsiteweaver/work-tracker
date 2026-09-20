@@ -22,20 +22,20 @@ class NavItemSeeder extends Seeder
             'label' => 'Tweezzo',
             'url' => 'https://app.tweezzo.org',
             'image' => 'images/tweezzo-64px.png',
-            'classes' => 'bg-cyan-600 text-white hover:bg-cyan-700',
+            'color' => 'cyan',
         ],
         [
             'key' => 'phpmyadmin',
             'label' => 'phpMyAdmin',
             'url' => 'http://localhost/phpmyadmin',
             'image' => 'images/phpmyadmin-64px.png',
-            'classes' => 'bg-teal-600 text-white hover:bg-teal-700',
+            'color' => 'teal',
         ],
         [
             'key' => 'server',
             'label' => 'Server',
             'image' => 'images/servers-64px.png',
-            'classes' => 'bg-green-400 text-white hover:bg-green-500',
+            'color' => 'green',
             'children' => [
                 [
                     'key' => 'hosting-com',
@@ -62,7 +62,7 @@ class NavItemSeeder extends Seeder
             'label' => 'HMS',
             'url' => 'https://hms.netsiteweaver.com',
             'image' => 'images/hms-64px.png',
-            'classes' => 'bg-blue-600 text-white hover:bg-blue-700',
+            'color' => 'blue',
         ],
         [
             'key' => 'github',
@@ -70,21 +70,22 @@ class NavItemSeeder extends Seeder
             'url' => 'https://github.com',
             'image' => 'images/github-64px.png',
             'image_classes' => 'bg-white rounded-sm p-0.5',
-            'classes' => 'border-2 border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white dark:border-gray-200 dark:text-gray-200 dark:hover:bg-gray-200 dark:hover:text-gray-900',
+            'color' => 'gray',
+            'outline' => true,
         ],
         [
             'key' => 'gitlab',
             'label' => 'GitLab',
             'url' => 'https://gitlab.com',
             'image' => 'images/gitlab-64px.png',
-            'classes' => 'bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-100 dark:text-orange-900 dark:hover:bg-orange-200 dark:ring-1 dark:ring-orange-300',
+            'color' => 'orange',
         ],
         [
             'key' => 'whatsapp',
             'label' => 'WhatsApp',
             'url' => 'https://web.whatsapp.com/',
             'image' => 'images/whatsapp-64px.png',
-            'classes' => 'bg-green-500 text-white hover:bg-green-600',
+            'color' => 'green',
         ],
     ];
 
@@ -111,6 +112,8 @@ class NavItemSeeder extends Seeder
                 'label' => $item['label'],
                 'url' => $item['url'] ?? null,
                 'image' => $item['image'] ?? null,
+                'color' => $item['color'] ?? null,
+                'outline' => $item['outline'] ?? false,
                 'classes' => $item['classes'] ?? null,
                 'image_classes' => $item['image_classes'] ?? null,
                 'sort_order' => $sort,

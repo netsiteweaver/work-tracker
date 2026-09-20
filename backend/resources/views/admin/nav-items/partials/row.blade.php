@@ -4,6 +4,8 @@
         'label' => $item->label,
         'url' => $item->url,
         'parent_id' => $item->parent_id,
+        'color' => $item->color,
+        'outline' => $item->outline,
         'classes' => $item->classes,
         'image_classes' => $item->image_classes,
         'is_active' => $item->is_active,
@@ -19,7 +21,7 @@
         </svg>
     </span>
 
-    <span class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded {{ $item->classes ?: 'bg-gray-200 text-gray-800' }}">
+    <span class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded {{ $item->button_classes ?: 'bg-gray-200 text-gray-800' }}">
         @if($item->image_url)
             <img src="{{ $item->image_url }}" alt="" class="w-4 h-4 {{ $item->image_classes }}">
         @endif

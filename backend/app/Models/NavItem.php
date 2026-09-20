@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Support\NavColors;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -20,6 +21,8 @@ class NavItem extends Model
         'label',
         'url',
         'image',
+        'color',
+        'outline',
         'classes',
         'image_classes',
         'sort_order',
@@ -31,6 +34,7 @@ class NavItem extends Model
         return [
             'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'outline' => 'boolean',
         ];
     }
 
@@ -42,6 +46,17 @@ class NavItem extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * The classes the button renders with: generated from its colour, or the
+     * raw string for an item styled by hand.
+     */
+    public function getButtonClassesAttribute(): string
+    {
+        return $this->color
+            ? NavColors::classes($this->color, (bool) $this->outline)
+            : (string) $this->classes;
     }
 
     /**
@@ -101,7 +116,7 @@ class NavItem extends Model
             'url' => $this->url,
             'image' => $this->image,
             'image_url' => $this->image_url,
-            'classes' => $this->classes,
+            'classes' => $this->button_classes,
             'image_classes' => $this->image_classes,
         ];
 

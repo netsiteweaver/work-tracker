@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\NavItem;
+use App\Support\NavColors;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -13,31 +14,13 @@ use Illuminate\Validation\Rule;
  */
 class NavItemController extends Controller
 {
-    /**
-     * Colour presets offered in the form, so items keep a consistent look.
-     *
-     * @var array<string, string>
-     */
-    public const PRESETS = [
-        'Blue' => 'bg-blue-600 text-white hover:bg-blue-700',
-        'Cyan' => 'bg-cyan-600 text-white hover:bg-cyan-700',
-        'Teal' => 'bg-teal-600 text-white hover:bg-teal-700',
-        'Green' => 'bg-green-600 text-white hover:bg-green-700',
-        'Indigo' => 'bg-indigo-600 text-white hover:bg-indigo-700',
-        'Purple' => 'bg-purple-600 text-white hover:bg-purple-700',
-        'Orange' => 'bg-orange-600 text-white hover:bg-orange-700',
-        'Red' => 'bg-red-600 text-white hover:bg-red-700',
-        'Gray' => 'bg-gray-600 text-white hover:bg-gray-700',
-        'Outline' => 'border-2 border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white dark:border-gray-200 dark:text-gray-200 dark:hover:bg-gray-200 dark:hover:text-gray-900',
-    ];
-
     public function index()
     {
         $this->authorizeEdit();
 
         return view('admin.nav-items.index', [
             'items' => NavItem::tree(),
-            'presets' => self::PRESETS,
+            'colors' => NavColors::COLORS,
         ]);
     }
 
@@ -139,6 +122,8 @@ class NavItemController extends Controller
                 Rule::prohibitedIf($isDropdownParent),
                 Rule::exists('nav_items', 'id')->whereNull('parent_id'),
             ],
+            'color' => ['nullable', Rule::in(NavColors::COLORS)],
+            'outline' => ['nullable', 'boolean'],
             'classes' => ['nullable', 'string', 'max:255'],
             'image_classes' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp,svg', 'max:2048'],
@@ -158,7 +143,11 @@ class NavItemController extends Controller
             'label' => $validated['label'],
             'url' => $validated['url'] ?? null,
             'parent_id' => $parentId ? (int) $parentId : null,
-            'classes' => $validated['classes'] ?? null,
+            'color' => $validated['color'] ?? null,
+            'outline' => $request->boolean('outline'),
+            // A colour drives the styling; the raw string is only kept for an
+            // item the palette cannot describe.
+            'classes' => empty($validated['color']) ? ($validated['classes'] ?? null) : null,
             'image_classes' => $validated['image_classes'] ?? null,
             'is_active' => $request->boolean('is_active'),
         ];
