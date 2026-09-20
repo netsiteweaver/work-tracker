@@ -39,7 +39,9 @@
                                         @click.stop="open = !open"
                                         class="nav-trigger flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors {{ $item['classes'] }}"
                                     >
-                                        <img src="{{ asset($item['image']) }}" alt="{{ $item['label'] }}" class="w-4 h-4" />
+                                        @if(!empty($item['image_url']))
+                                            <img src="{{ $item['image_url'] }}" alt="{{ $item['label'] }}" class="w-4 h-4 {{ $item['image_classes'] ?? '' }}" />
+                                        @endif
                                         {{ $item['label'] }}
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -62,7 +64,9 @@
                                                     @click="open = false"
                                                     class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors first:rounded-t-md last:rounded-b-md"
                                                 >
-                                                    <img src="{{ asset($child['image']) }}" alt="{{ $child['label'] }}" class="w-4 h-4" />
+                                                    @if(!empty($child['image_url']))
+                                                        <img src="{{ $child['image_url'] }}" alt="{{ $child['label'] }}" class="w-4 h-4 {{ $child['image_classes'] ?? '' }}" />
+                                                    @endif
                                                     {{ $child['label'] }}
                                                 </a>
                                             @endforeach
@@ -91,7 +95,9 @@
                                     draggable="false"
                                     class="nav-trigger flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors {{ $item['classes'] }}"
                                 >
-                                    <img src="{{ asset($item['image']) }}" alt="{{ $item['label'] }}" class="w-4 h-4 {{ $item['image_classes'] ?? '' }}" />
+                                    @if(!empty($item['image_url']))
+                                        <img src="{{ $item['image_url'] }}" alt="{{ $item['label'] }}" class="w-4 h-4 {{ $item['image_classes'] ?? '' }}" />
+                                    @endif
                                     {{ $item['label'] }}
                                 </a>
                             @endif

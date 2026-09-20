@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\NavItemController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\NavigationController;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +38,13 @@ Route::middleware('auth')->group(function () {
         Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::get('/settings/remove-background', [SettingsController::class, 'removeBackground'])->name('settings.remove-background');
         
+        // Admin top menu management
+        Route::get('/menu', [NavItemController::class, 'index'])->name('nav-items.index');
+        Route::post('/menu', [NavItemController::class, 'store'])->name('nav-items.store');
+        Route::post('/menu/order', [NavItemController::class, 'updateOrder'])->name('nav-items.order');
+        Route::put('/menu/{navItem}', [NavItemController::class, 'update'])->name('nav-items.update');
+        Route::delete('/menu/{navItem}', [NavItemController::class, 'destroy'])->name('nav-items.destroy');
+
         // Admin users management
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');

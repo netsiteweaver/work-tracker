@@ -2,10 +2,14 @@
 
 namespace App\Support;
 
+use App\Models\NavItem;
 use App\Models\Setting;
 
 class NavMenu
 {
+    /** The group whose items are managed from the back office. */
+    public const MANAGED_GROUP = 'frontend';
+
     /** Per-user setting keys. */
     public const PINS_KEY = 'nav_pins';
     public const USAGE_KEY = 'nav_usage';
@@ -31,7 +35,7 @@ class NavMenu
      */
     public static function keys(string $group): array
     {
-        return array_column(config('navigation.'.$group, []), 'key');
+        return array_column(self::groupItems($group), 'key');
     }
 
     /**
@@ -40,8 +44,8 @@ class NavMenu
     public static function allKeys(): array
     {
         $keys = [];
-        foreach (array_keys(config('navigation', [])) as $group) {
-            foreach (config('navigation.'.$group, []) as $item) {
+        foreach (self::groups() as $group) {
+            foreach (self::groupItems($group) as $item) {
                 $keys[] = $item['key'];
                 foreach ($item['children'] ?? [] as $child) {
                     $keys[] = $child['key'];
@@ -127,6 +131,37 @@ class NavMenu
     }
 
     /**
+     * Every menu group there is.
+     *
+     * @return list<string>
+     */
+    public static function groups(): array
+    {
+        return array_values(array_unique(array_merge(
+            [self::MANAGED_GROUP],
+            array_keys(config('navigation', []))
+        )));
+    }
+
+    /**
+     * All items of a group in their default order, before any filtering. The
+     * managed group is editable from the back office and so lives in the
+     * database; the rest are tied to routes and stay in config/navigation.php.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function groupItems(string $group): array
+    {
+        if ($group !== self::MANAGED_GROUP) {
+            return config('navigation.'.$group, []);
+        }
+
+        return NavItem::tree(activeOnly: true)
+            ->map(fn (NavItem $item) => $item->toMenuArray())
+            ->all();
+    }
+
+    /**
      * Items of a group the current user is allowed to see.
      *
      * @return list<array<string, mixed>>
@@ -134,7 +169,7 @@ class NavMenu
     protected static function visibleItems(string $group): array
     {
         return array_values(array_filter(
-            config('navigation.'.$group, []),
+            self::groupItems($group),
             fn (array $item) => self::allowed($item['ability'] ?? null)
         ));
     }

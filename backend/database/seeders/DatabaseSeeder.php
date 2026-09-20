@@ -22,5 +22,8 @@ class DatabaseSeeder extends Seeder
 
         // Seed projects
         $this->call(ProjectSeeder::class);
+
+        // Seed the top menu buttons
+        $this->call(NavItemSeeder::class);
     }
 }

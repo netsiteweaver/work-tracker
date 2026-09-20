@@ -10,8 +10,9 @@
             @php
                 $hasProjectsAccess = auth()->check() && auth()->user()->canEdit();
                 $hasSettingsAccess = auth()->check() && auth()->user()->canEdit();
+                $hasMenuAccess = auth()->check() && auth()->user()->canEdit();
                 $hasUsersAccess = auth()->check() && auth()->user()->isAdmin();
-                $hasAnyAccess = $hasProjectsAccess || $hasSettingsAccess || $hasUsersAccess;
+                $hasAnyAccess = $hasProjectsAccess || $hasSettingsAccess || $hasMenuAccess || $hasUsersAccess;
             @endphp
 
             @if($hasAnyAccess)
@@ -56,6 +57,28 @@
                             </div>
                             <div class="mt-4">
                                 <span class="text-sm text-indigo-600 font-medium">Configure Settings →</span>
+                            </div>
+                        </div>
+                    </a>
+                    @endif
+
+                    <!-- Top Menu Card (only for users who can edit) -->
+                    @if($hasMenuAccess)
+                    <a href="{{ route('admin.nav-items.index') }}" class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Top Menu</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Add, edit and remove the shortcut buttons shown on the top menu of the front end.</p>
+                                </div>
+                                <div class="ml-4">
+                                    <svg class="w-12 h-12 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-sm text-cyan-600 font-medium">Manage Menu →</span>
                             </div>
                         </div>
                     </a>
