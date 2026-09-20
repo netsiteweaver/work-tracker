@@ -15,10 +15,11 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'reeaz@ramoly.info',
-        ]);
+        // Re-runnable: an install that already has the admin keeps it as it is.
+        User::firstOrCreate(
+            ['email' => 'reeaz@ramoly.info'],
+            User::factory()->raw(['name' => 'Admin', 'email' => 'reeaz@ramoly.info'])
+        );
 
         // Seed projects
         $this->call(ProjectSeeder::class);

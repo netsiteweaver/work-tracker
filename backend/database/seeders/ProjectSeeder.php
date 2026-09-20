@@ -12,6 +12,12 @@ class ProjectSeeder extends Seeder
      */
     public function run(): void
     {
+        // Sample data for an empty install only, so re-seeding an existing
+        // database does not pile duplicate demo projects onto real ones.
+        if (Project::query()->exists()) {
+            return;
+        }
+
         $projects = [
             [
                 'name' => 'E-commerce Platform Redesign',
