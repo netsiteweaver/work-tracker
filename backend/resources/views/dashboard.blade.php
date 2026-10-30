@@ -376,6 +376,102 @@
                     }
                 });
             });
+
+            // Right click a card to move it to another column
+            const statusLabels = @json($statuses->map->label);
+            const moveMenu = document.createElement('div');
+            moveMenu.className = 'hidden fixed z-50 min-w-[11rem] py-1 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm';
+            document.body.appendChild(moveMenu);
+
+            function closeMoveMenu() {
+                moveMenu.classList.add('hidden');
+            }
+
+            function moveCardTo(card, newStatus) {
+                const target = document.getElementById('board-' + newStatus);
+                if (!target) return;
+
+                // FLIP: note where the card is, move it, then animate it from
+                // its old position to the new one.
+                const source = card.closest('[id^="board-"]');
+                const cardBox = card.getBoundingClientRect();
+                const cardMargin = getComputedStyle(card).marginBottom;
+                const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+                // Leave a spacer where the card was and collapse it, so the
+                // cards below slide up and the column shrinks smoothly.
+                let spacer = null;
+                if (!reduceMotion) {
+                    spacer = document.createElement('div');
+                    spacer.style.height = cardBox.height + 'px';
+                    spacer.style.marginBottom = cardMargin;
+                    spacer.style.overflow = 'hidden';
+                    source.insertBefore(spacer, card);
+                }
+
+                target.appendChild(card);
+                updateProjectCardColor(card, newStatus);
+
+                if (spacer) {
+                    const collapse = spacer.animate(
+                        [
+                            { height: cardBox.height + 'px', marginBottom: cardMargin },
+                            { height: '0px', marginBottom: '0px' },
+                        ],
+                        { duration: 350, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }
+                    );
+                    collapse.onfinish = () => spacer.remove();
+
+                    // Columns clip their contents; let the card fly across them.
+                    const wrappers = [source.parentElement, target.parentElement];
+                    wrappers.forEach(w => { w.style.overflow = 'visible'; });
+                    setTimeout(() => wrappers.forEach(w => { w.style.overflow = ''; }), 480);
+
+                    const to = card.getBoundingClientRect();
+                    card.style.zIndex = '20';
+                    const fly = card.animate(
+                        [
+                            { transform: `translate(${cardBox.left - to.left}px, ${cardBox.top - to.top}px) scale(1.04)`, boxShadow: '0 12px 24px rgba(0,0,0,.3)' },
+                            { transform: 'translate(0, 0) scale(1)', boxShadow: '0 4px 6px rgba(0,0,0,.1)' },
+                        ],
+                        { duration: 450, easing: 'cubic-bezier(.2,.8,.2,1)' }
+                    );
+                    fly.onfinish = () => { card.style.zIndex = ''; };
+                }
+                playSuccessSound();
+                updateProjectOrder();
+            }
+
+            document.addEventListener('contextmenu', function(e) {
+                const card = e.target.closest('.project-card');
+                const board = card && card.closest('[id^="board-"]');
+                if (!board) return;
+                e.preventDefault();
+
+                const current = card.dataset.status;
+                moveMenu.innerHTML = '<div class="px-3 py-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Move to</div>';
+                Object.entries(statusLabels).forEach(([key, label]) => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.textContent = label;
+                    item.disabled = key === current;
+                    item.className = 'block w-full text-left px-3 py-1.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:hover:bg-transparent';
+                    item.addEventListener('click', () => {
+                        closeMoveMenu();
+                        moveCardTo(card, key);
+                    });
+                    moveMenu.appendChild(item);
+                });
+
+                moveMenu.classList.remove('hidden');
+                const x = Math.min(e.clientX, window.innerWidth - moveMenu.offsetWidth - 8);
+                const y = Math.min(e.clientY, window.innerHeight - moveMenu.offsetHeight - 8);
+                moveMenu.style.left = Math.max(8, x) + 'px';
+                moveMenu.style.top = Math.max(8, y) + 'px';
+            });
+            document.addEventListener('click', closeMoveMenu);
+            document.addEventListener('scroll', closeMoveMenu, true);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoveMenu(); });
             @else
             // Viewers cannot drag and drop
             @endif
