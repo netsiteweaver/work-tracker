@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Setting;
+use App\Models\Status;
 use App\Support\DashboardSyncState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
 {
@@ -20,41 +22,20 @@ class ProjectController extends Controller
         
         // Get user settings
         $userId = auth()->id();
-        $columnVisibility = Setting::get('column_visibility', [
-            'new' => true,
-            'in_progress' => true,
-            'on_hold' => true,
-            'maintenance' => true,
-            'completed' => true,
-            'stopped' => true,
-        ], $userId);
-        
-        $initialCollapse = Setting::get('initial_collapse', [
-            'new' => false,
-            'in_progress' => false,
-            'on_hold' => false,
-            'maintenance' => false,
-            'completed' => false,
-            'stopped' => false,
-        ], $userId);
-        
+        $statuses = Status::ordered();
+        $columnVisibility = Setting::get('column_visibility', [], $userId);
+        $initialCollapse = Setting::get('initial_collapse', [], $userId);
+
         $dashboardBackground = Setting::get('dashboard_background', '', $userId);
 
         $kanbanColumnOrder = DashboardSyncState::normalizedColumnOrder($userId);
 
         // Group by status for dashboard
-        $projectsByStatus = [
-            'new' => $projects->where('status', 'new')->values(),
-            'in_progress' => $projects->where('status', 'in_progress')->values(),
-            'on_hold' => $projects->where('status', 'on_hold')->values(),
-            'maintenance' => $projects->where('status', 'maintenance')->values(),
-            'completed' => $projects->where('status', 'completed')->values(),
-            'stopped' => $projects->where('status', 'stopped')->values(),
-        ];
-        
+        $projectsByStatus = $statuses->map(fn ($status) => $projects->where('status', $status->key)->values());
+
         $projectsSyncFingerprint = DashboardSyncState::fingerprint($userId);
 
-        return view('dashboard', compact('projectsByStatus', 'columnVisibility', 'initialCollapse', 'dashboardBackground', 'projectsSyncFingerprint', 'kanbanColumnOrder'));
+        return view('dashboard', compact('projectsByStatus', 'columnVisibility', 'initialCollapse', 'statuses', 'dashboardBackground', 'projectsSyncFingerprint', 'kanbanColumnOrder'));
     }
 
     /**
@@ -81,7 +62,7 @@ class ProjectController extends Controller
         if (!auth()->user()->canEdit()) {
             abort(403, 'You do not have permission to create projects.');
         }
-        return view('projects.create');
+        return view('projects.create', ['statuses' => Status::ordered()]);
     }
 
     /**
@@ -100,7 +81,7 @@ class ProjectController extends Controller
             'dev_path' => 'nullable|string|max:255',
             'staging_url' => 'nullable|url|max:255',
             'production_url' => 'nullable|url|max:255',
-            'status' => 'required|in:new,in_progress,on_hold,maintenance,completed,stopped',
+            'status' => ['required', Rule::exists('statuses', 'key')],
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date|after_or_equal:start_date',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200',
@@ -132,7 +113,7 @@ class ProjectController extends Controller
         }
         // Remember which page the edit was launched from so saving returns there
         $returnTo = $request->query('from') === 'dashboard' ? 'dashboard' : 'admin';
-        return view('projects.edit', compact('project', 'returnTo'));
+        return view('projects.edit', ['project' => $project, 'returnTo' => $returnTo, 'statuses' => Status::ordered()]);
     }
 
     /**
@@ -151,7 +132,7 @@ class ProjectController extends Controller
             'dev_path' => 'nullable|string|max:255',
             'staging_url' => 'nullable|url|max:255',
             'production_url' => 'nullable|url|max:255',
-            'status' => 'sometimes|required|in:new,in_progress,on_hold,maintenance,completed,stopped',
+            'status' => ['sometimes', 'required', Rule::exists('statuses', 'key')],
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200',
@@ -216,7 +197,7 @@ class ProjectController extends Controller
             'projects' => 'required|array',
             'projects.*.id' => 'required|exists:projects,id',
             'projects.*.sort_order' => 'required|integer',
-            'projects.*.status' => 'sometimes|in:new,in_progress,on_hold,maintenance,completed,stopped',
+            'projects.*.status' => ['sometimes', Rule::exists('statuses', 'key')],
         ]);
 
         if ($validator->fails()) {

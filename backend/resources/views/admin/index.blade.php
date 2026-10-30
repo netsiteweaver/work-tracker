@@ -62,6 +62,28 @@
                     </a>
                     @endif
 
+                    <!-- Groups Card (only for users who can edit) -->
+                    @if($hasMenuAccess)
+                    <a href="{{ route('admin.statuses.index') }}" class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Groups</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Add, rename, recolour and remove the dashboard groups that projects are sorted into.</p>
+                                </div>
+                                <div class="ml-4">
+                                    <svg class="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-sm text-orange-600 font-medium">Manage Groups →</span>
+                            </div>
+                        </div>
+                    </a>
+                    @endif
+
                     <!-- Top Menu Card (only for users who can edit) -->
                     @if($hasMenuAccess)
                     <a href="{{ route('admin.nav-items.index') }}" class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow">

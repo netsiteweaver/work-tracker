@@ -52,7 +52,7 @@ class Project extends Model
             ->selectRaw('MAX(updated_at) as max_updated')
             ->first();
 
-        return ($row->c ?? 0).'|'.($row->max_id ?? 0).'|'.($row->max_updated ?? '');
+        return ($row->c ?? 0).'|'.($row->max_id ?? 0).'|'.($row->max_updated ?? '').'|s:'.Status::syncFingerprint();
     }
 
     /**

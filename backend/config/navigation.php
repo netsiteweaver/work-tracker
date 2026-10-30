@@ -54,6 +54,16 @@ return [
             'icon' => ['M4 6h16M4 12h16M4 18h16'],
         ],
         [
+            'key' => 'admin-groups',
+            'label' => 'Groups',
+            'route' => 'admin.statuses.index',
+            'active' => 'admin.statuses.*',
+            'ability' => 'edit',
+            'classes' => 'bg-orange-600 text-white hover:bg-orange-700',
+            'active_classes' => 'ring-2 ring-orange-300',
+            'icon' => ['M4 6a2 2 0 012-2h2a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z'],
+        ],
+        [
             'key' => 'admin-users',
             'label' => 'Users',
             'route' => 'admin.users.index',

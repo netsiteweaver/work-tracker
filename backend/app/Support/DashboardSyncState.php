@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Project;
 use App\Models\Setting;
+use App\Models\Status;
 
 class DashboardSyncState
 {
@@ -14,7 +15,7 @@ class DashboardSyncState
      */
     public static function defaultColumnOrder(): array
     {
-        return ['new', 'in_progress', 'on_hold', 'maintenance', 'completed', 'stopped'];
+        return Status::ordered()->keys()->all();
     }
 
     /**

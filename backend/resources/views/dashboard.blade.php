@@ -24,38 +24,15 @@
             @endif
 
             @auth
-                @php
-                    $statuses = [
-                        'new' => ['title' => 'New', 'bgClass' => 'bg-blue-600'],
-                        'in_progress' => ['title' => 'In Progress', 'bgClass' => 'bg-yellow-600'],
-                        'on_hold' => ['title' => 'On Hold', 'bgClass' => 'bg-orange-600'],
-                        'maintenance' => ['title' => 'Maintenance', 'bgClass' => 'bg-purple-600'],
-                        'completed' => ['title' => 'Completed', 'bgClass' => 'bg-green-600'],
-                        'stopped' => ['title' => 'Stopped', 'bgClass' => 'bg-red-600']
-                    ];
-                    $patternClasses = [
-                        'new' => 'bg-pattern-new',
-                        'in_progress' => 'bg-pattern-in_progress',
-                        'on_hold' => 'bg-pattern-on_hold',
-                        'maintenance' => 'bg-pattern-maintenance',
-                        'completed' => 'bg-pattern-completed',
-                        'stopped' => 'bg-pattern-stopped'
-                    ];
-                    
-                    $visibleColumns = array_filter($statuses, function($status) use ($columnVisibility) {
-                        return $columnVisibility[$status] ?? true;
-                    }, ARRAY_FILTER_USE_KEY);
-                    $columnCount = count($visibleColumns);
-                @endphp
                 <div class="grid gap-6" id="kanban-board" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
 
                     @foreach($statuses as $status => $config)
                         @if($columnVisibility[$status] ?? true)
                         <div class="board-column" data-status="{{ $status }}" data-column-order="{{ $loop->index }}" data-initial-collapse="{{ ($initialCollapse[$status] ?? false) ? 'true' : 'false' }}">
-                            <div class="rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700 {{ $patternClasses[$status] }}">
-                                <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 {{ $config['bgClass'] }} column-header cursor-move" title="Drag to reorder columns">
+                            <div class="rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700 status-grid {{ $config->columnClass() }}">
+                                <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 {{ $config->headerClass() }} column-header cursor-move" title="Drag to reorder columns">
                                     <h2 class="text-sm font-semibold uppercase tracking-wide text-white">
-                                        {{ $config['title'] }}
+                                        {{ $config->label }}
                                     </h2>
                                     <div class="flex items-center gap-2">
                                         <button 
@@ -159,46 +136,10 @@
             z-index: 3;
         }
         
-        .bg-pattern-new {
-            background-color: #eff6ff;
+        .status-grid {
             background-image:
-                linear-gradient(rgba(59, 130, 246, 0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59, 130, 246, 0.07) 1px, transparent 1px);
-            background-size: 16px 16px;
-        }
-        .bg-pattern-in_progress {
-            background-color: #fffbeb;
-            background-image:
-                linear-gradient(rgba(245, 158, 11, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(245, 158, 11, 0.08) 1px, transparent 1px);
-            background-size: 16px 16px;
-        }
-        .bg-pattern-on_hold {
-            background-color: #fff7ed;
-            background-image:
-                linear-gradient(rgba(249, 115, 22, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(249, 115, 22, 0.08) 1px, transparent 1px);
-            background-size: 16px 16px;
-        }
-        .bg-pattern-maintenance {
-            background-color: #faf5ff;
-            background-image:
-                linear-gradient(rgba(168, 85, 247, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(168, 85, 247, 0.08) 1px, transparent 1px);
-            background-size: 16px 16px;
-        }
-        .bg-pattern-completed {
-            background-color: #ecfdf3;
-            background-image:
-                linear-gradient(rgba(34, 197, 94, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(34, 197, 94, 0.08) 1px, transparent 1px);
-            background-size: 16px 16px;
-        }
-        .bg-pattern-stopped {
-            background-color: #fef2f2;
-            background-image:
-                linear-gradient(rgba(248, 113, 113, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(248, 113, 113, 0.08) 1px, transparent 1px);
+                linear-gradient(rgba(100, 116, 139, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 116, 139, 0.1) 1px, transparent 1px);
             background-size: 16px 16px;
         }
         .ghost-card {
@@ -241,7 +182,7 @@
             const columnOrderUrl = '{{ route("admin.projects.column-order") }}';
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-            const defaultKanbanStatuses = ['new', 'in_progress', 'on_hold', 'maintenance', 'completed', 'stopped'];
+            const defaultKanbanStatuses = @json($statuses->keys());
 
             function mergeVisibleIntoFullOrder(previousFull, visibleDomOrder) {
                 const visible = new Set(visibleDomOrder);
@@ -384,14 +325,7 @@
             }
 
             // Border color mapping
-            const statusBorderClasses = {
-                'new': 'border-blue-500',
-                'in_progress': 'border-yellow-500',
-                'on_hold': 'border-orange-500',
-                'maintenance': 'border-purple-500',
-                'completed': 'border-green-500',
-                'stopped': 'border-red-500'
-            };
+            const statusBorderClasses = @json($statuses->map->borderClass());
 
             // Function to update project card border color
             function updateProjectCardColor(card, newStatus) {

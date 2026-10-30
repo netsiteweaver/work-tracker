@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\NavItemController;
+use App\Http\Controllers\Admin\StatusController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\NavigationController;
 use App\Http\Controllers\ProfileController;
@@ -44,6 +45,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/menu/order', [NavItemController::class, 'updateOrder'])->name('nav-items.order');
         Route::put('/menu/{navItem}', [NavItemController::class, 'update'])->name('nav-items.update');
         Route::delete('/menu/{navItem}', [NavItemController::class, 'destroy'])->name('nav-items.destroy');
+
+        // Admin dashboard groups management
+        Route::get('/groups', [StatusController::class, 'index'])->name('statuses.index');
+        Route::post('/groups', [StatusController::class, 'store'])->name('statuses.store');
+        Route::put('/groups/{status}', [StatusController::class, 'update'])->name('statuses.update');
+        Route::delete('/groups/{status}', [StatusController::class, 'destroy'])->name('statuses.destroy');
 
         // Admin users management
         Route::get('/users', [UserController::class, 'index'])->name('users.index');

@@ -20,6 +20,9 @@ const navColorClasses = navColors.flatMap((color) => [
     `dark:border-${color}-400`,
     `dark:text-${color}-300`,
     `dark:hover:bg-${color}-500`,
+    // dashboard groups
+    `border-${color}-500`,
+    `bg-${color}-50`,
 ]);
 
 /** @type {import('tailwindcss').Config} */

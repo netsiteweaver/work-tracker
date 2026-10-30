@@ -24,18 +24,7 @@
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose which columns to show or hide on the dashboard.</p>
                         
                         <div class="space-y-3">
-                            @php
-                                $statuses = [
-                                    'new' => 'New',
-                                    'in_progress' => 'In Progress',
-                                    'on_hold' => 'On Hold',
-                                    'maintenance' => 'Maintenance',
-                                    'completed' => 'Completed',
-                                    'stopped' => 'Stopped'
-                                ];
-                            @endphp
-                            
-                            @foreach($statuses as $key => $label)
+                            @foreach($statuses as $key => $status)
                                 <div class="flex items-center">
                                     <input 
                                         type="checkbox" 
@@ -46,7 +35,7 @@
                                         class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                     >
                                     <label for="column_visibility_{{ $key }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                                        {{ $label }}
+                                        {{ $status->label }}
                                     </label>
                                 </div>
                             @endforeach
@@ -61,7 +50,7 @@
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Set which columns should be collapsed by default when the dashboard loads.</p>
                         
                         <div class="space-y-3">
-                            @foreach($statuses as $key => $label)
+                            @foreach($statuses as $key => $status)
                                 <div class="flex items-center">
                                     <input 
                                         type="checkbox" 
@@ -72,7 +61,7 @@
                                         class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                     >
                                     <label for="initial_collapse_{{ $key }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                                        {{ $label }} (collapsed by default)
+                                        {{ $status->label }} (collapsed by default)
                                     </label>
                                 </div>
                             @endforeach

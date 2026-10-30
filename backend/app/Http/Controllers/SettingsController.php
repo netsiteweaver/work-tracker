@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Models\Status;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -21,29 +22,18 @@ class SettingsController extends Controller
         
         $userId = Auth::id();
         
+        $statuses = Status::ordered();
+        $keys = $statuses->keys();
+
         // Get current settings or defaults
         $settings = [
-            'column_visibility' => Setting::get('column_visibility', [
-                'new' => true,
-                'in_progress' => true,
-                'on_hold' => true,
-                'maintenance' => true,
-                'completed' => true,
-                'stopped' => true,
-            ], $userId),
-            'initial_collapse' => Setting::get('initial_collapse', [
-                'new' => false,
-                'in_progress' => false,
-                'on_hold' => false,
-                'maintenance' => false,
-                'completed' => false,
-                'stopped' => false,
-            ], $userId),
+            'column_visibility' => Setting::get('column_visibility', [], $userId) + $keys->mapWithKeys(fn ($k) => [$k => true])->all(),
+            'initial_collapse' => Setting::get('initial_collapse', [], $userId) + $keys->mapWithKeys(fn ($k) => [$k => false])->all(),
             'dashboard_background' => Setting::get('dashboard_background', '', $userId),
             'dark_mode' => Setting::get('dark_mode', false, $userId),
         ];
 
-        return view('settings.index', compact('settings'));
+        return view('settings.index', compact('settings', 'statuses'));
     }
 
     /**
@@ -84,7 +74,7 @@ class SettingsController extends Controller
         ]);
 
         // Define all possible statuses
-        $allStatuses = ['new', 'in_progress', 'on_hold', 'maintenance', 'completed', 'stopped'];
+        $allStatuses = Status::ordered()->keys()->all();
         
         // Process column visibility - unchecked checkboxes won't be in the request
         $columnVisibility = [];

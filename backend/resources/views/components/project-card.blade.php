@@ -1,15 +1,8 @@
 @props(['project', 'showActions' => false])
 
 @php
-    $borderClasses = [
-        'new' => 'border-blue-500',
-        'in_progress' => 'border-yellow-500',
-        'on_hold' => 'border-orange-500',
-        'maintenance' => 'border-purple-500',
-        'completed' => 'border-green-500',
-        'stopped' => 'border-red-500'
-    ];
-    $borderClass = $borderClasses[$project->status] ?? 'border-gray-500';
+    $statusModel = \App\Models\Status::ordered()->get($project->status);
+    $borderClass = $statusModel ? $statusModel->borderClass() : 'border-gray-500';
     
     // Check if project is past due date (only for non-completed/stopped projects)
     $finishDate = $project->finish_date ? \Carbon\Carbon::parse($project->finish_date) : null;

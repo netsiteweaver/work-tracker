@@ -92,12 +92,9 @@
                             <div>
                                 <x-input-label for="status" :value="__('Status')" />
                                 <select id="status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                    <option value="new" {{ old('status', $project->status) == 'new' ? 'selected' : '' }}>New</option>
-                                    <option value="in_progress" {{ old('status', $project->status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                    <option value="on_hold" {{ old('status', $project->status) == 'on_hold' ? 'selected' : '' }}>On Hold</option>
-                                    <option value="maintenance" {{ old('status', $project->status) == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
-                                    <option value="completed" {{ old('status', $project->status) == 'completed' ? 'selected' : '' }}>Completed</option>
-                                    <option value="stopped" {{ old('status', $project->status) == 'stopped' ? 'selected' : '' }}>Stopped</option>
+                                    @foreach($statuses as $status)
+                                        <option value="{{ $status->key }}" {{ old('status', $project->status) == $status->key ? 'selected' : '' }}>{{ $status->label }}</option>
+                                    @endforeach
                                 </select>
                                 @error('status')
                                     <x-input-error class="mt-2" :messages="[$message]" />
